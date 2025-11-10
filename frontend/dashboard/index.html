@@ -1,0 +1,630 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Technician Dashboard - ESSU Water Maintenance</title>
+    <link rel="stylesheet" href="styles.css">
+    <link rel="icon" type="image/x-icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>💧</text></svg>">
+</head>
+<body class="admin-page">
+    <header class="admin-header">
+        <div class="container">
+            <div class="header-content">
+                <div class="logo">
+                    <span class="logo-icon">💧</span>
+                    <h1>ESSU Water Maintenance - Technician</h1>
+                </div>
+                <div class="admin-nav">
+                    <a href="#assigned" class="nav-link active">My Assignments</a>
+                    <a href="#completed" class="nav-link">Completed</a>
+                </div>
+                <div class="user-menu">
+                    <span class="user-name" id="userName">Loading...</span>
+                    <button class="logout-btn" onclick="logout()">Logout</button>
+                </div>
+            </div>
+        </div>
+    </header>
+
+    <main class="container">
+        <!-- Assigned Reports Section -->
+        <section id="assigned" class="admin-section active">
+            <div class="section-header">
+                <h2>My Assigned Reports</h2>
+                <div class="section-actions">
+                    <button class="btn btn-primary" onclick="refreshReports()">Refresh</button>
+                </div>
+            </div>
+
+            <div class="reports-table-container">
+                <table id="assignedTable" class="admin-table">
+                    <thead>
+                        <tr>
+                            <th>ID</th>
+                            <th>Reporter</th>
+                            <th>Location</th>
+                            <th>Issue</th>
+                            <th>Priority</th>
+                            <th>Status</th>
+                            <th>Created</th>
+                            <th>Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody id="assignedTableBody">
+                        <tr>
+                            <td colspan="8" class="loading">Loading assigned reports...</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </section>
+
+        <!-- Completed Reports Section -->
+        <section id="completed" class="admin-section">
+            <div class="section-header">
+                <h2>Completed Reports</h2>
+                <div class="section-actions">
+                    <button class="btn btn-primary" onclick="refreshReports()">Refresh</button>
+                </div>
+            </div>
+
+            <div class="reports-table-container">
+                <table id="completedTable" class="admin-table">
+                    <thead>
+                        <tr>
+                            <th>ID</th>
+                            <th>Reporter</th>
+                            <th>Location</th>
+                            <th>Issue</th>
+                            <th>Priority</th>
+                            <th>Status</th>
+                            <th>Completed</th>
+                            <th>Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody id="completedTableBody">
+                        <tr>
+                            <td colspan="8" class="loading">Loading completed reports...</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </section>
+    </main>
+
+    <!-- Report Details Modal -->
+    <div id="reportModal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3>Report Details</h3>
+                <button class="modal-close" onclick="closeModal('reportModal')">&times;</button>
+            </div>
+            <div class="modal-body" id="reportModalBody">
+                <!-- Report details will be loaded here -->
+            </div>
+            <div class="modal-footer">
+                <button class="btn btn-secondary" onclick="closeModal('reportModal')">Close</button>
+                <button class="btn btn-success" onclick="confirmFromReportDetails()" title="Simple confirmation - no status change or file upload">Confirm Report</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Confirm Report Modal -->
+    <div id="confirmModal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3>Update & Confirm Report to Admin</h3>
+                <button class="modal-close" onclick="closeModal('confirmModal')">&times;</button>
+            </div>
+            <div class="modal-body">
+                <form id="confirmForm" class="update-form" enctype="multipart/form-data">
+                    <div class="form-group">
+                        <label for="status">Status</label>
+                        <select id="status" name="status" required>
+                            <option value="In Progress">In Progress</option>
+                            <option value="Resolved">Resolved</option>
+                            <option value="Cancelled">Cancelled</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label for="admin_note">Notes</label>
+                        <textarea id="admin_note" name="admin_note" rows="4" 
+                                  placeholder="Add any notes about the work performed..."></textarea>
+                    </div>
+                    <div class="form-group">
+                        <label for="completion_proof">📷 Completion Proof (Optional)</label>
+                        <input type="file" id="completion_proof" name="completion_proof" accept="image/*" class="file-input">
+                        <small class="form-hint">Upload a photo as proof that the work has been completed (Max 3MB)</small>
+                        <div id="proofPreview" class="image-preview-container" style="display: none; margin-top: 10px;">
+                            <img id="proofPreviewImg" src="" alt="Preview" class="preview-image">
+                            <button type="button" class="btn-remove-preview" onclick="removeProofPreview()">Remove</button>
+                        </div>
+                    </div>
+                </form>
+            </div>
+            <div class="modal-footer">
+                <button class="btn btn-secondary" onclick="closeModal('confirmModal')">Cancel</button>
+                <button class="btn btn-success" onclick="submitConfirmation()" title="Update status, add notes, upload proof, and confirm">Update & Confirm Report</button>
+            </div>
+        </div>
+    </div>
+
+    <div id="message" class="message" style="display: none;"></div>
+
+    <script src="app.js"></script>
+    <script>
+        let currentUser = null;
+        let currentReportId = null;
+        let allReports = [];
+
+        // Check authentication on page load
+        document.addEventListener('DOMContentLoaded', function() {
+            checkAuth();
+            loadReports();
+            setupNavigation();
+        });
+
+        function checkAuth() {
+            const token = localStorage.getItem(CONFIG.TOKEN_KEY);
+            const user = localStorage.getItem(CONFIG.USER_KEY);
+            
+            if (!token || !user) {
+                window.location.href = '../login/index.html';
+                return;
+            }
+            
+            currentUser = JSON.parse(user);
+            if (currentUser.role !== 'technician') {
+                alert('Technician access required');
+                window.location.href = '../login/index.html';
+                return;
+            }
+            
+            document.getElementById('userName').textContent = currentUser.full_name;
+        }
+
+        function setupNavigation() {
+            const navLinks = document.querySelectorAll('.admin-nav .nav-link');
+            const sections = document.querySelectorAll('.admin-section');
+            
+            navLinks.forEach(link => {
+                link.addEventListener('click', function(e) {
+                    e.preventDefault();
+                    const targetSection = this.getAttribute('href').substring(1);
+                    
+                    // Update active nav link
+                    navLinks.forEach(l => l.classList.remove('active'));
+                    this.classList.add('active');
+                    
+                    // Show target section
+                    sections.forEach(s => s.classList.remove('active'));
+                    document.getElementById(targetSection).classList.add('active');
+                });
+            });
+        }
+
+        async function loadReports() {
+            try {
+                // Use API service from app.js which handles proper URL detection and authentication
+                allReports = await API.reports.getAll();
+                displayAssignedReports();
+                displayCompletedReports();
+            } catch (error) {
+                console.error('Error loading reports:', error);
+                if (error.message && error.message.includes('Authentication required')) {
+                    showMessage('error', 'Session expired. Please login again.');
+                    setTimeout(() => {
+                        logout();
+                    }, 2000);
+                } else {
+                    // Offline mode - show empty state
+                    console.log('⚠️ Backend not available - running in offline mode');
+                    allReports = [];
+                    displayAssignedReports();
+                    displayCompletedReports();
+                    showMessage('info', 'Running in offline mode. Reports will be empty until backend is connected.');
+                }
+            }
+        }
+
+        function displayAssignedReports() {
+            const tbody = document.getElementById('assignedTableBody');
+            // Filter reports assigned to current technician (compare as strings for UUID)
+            const assignedReports = allReports.filter(report => 
+                String(report.assigned_to) === String(currentUser.id) && 
+                report.status !== 'Resolved' && 
+                report.status !== 'Cancelled'
+            );
+            
+            if (assignedReports.length === 0) {
+                tbody.innerHTML = '<tr><td colspan="8" class="no-data">No assigned reports</td></tr>';
+                return;
+            }
+            
+            tbody.innerHTML = assignedReports.map(report => `
+                <tr>
+                    <td>#${report.id.substring(0, 8)}</td>
+                    <td>${report.reporter_name}</td>
+                    <td>${report.location}</td>
+                    <td>${report.issue_type}</td>
+                    <td><span class="priority priority-${report.priority.toLowerCase()}">${report.priority}</span></td>
+                    <td><span class="status status-${report.status.toLowerCase().replace(' ', '-')}">${report.status}</span></td>
+                    <td>${new Date(report.created_at).toLocaleDateString()}</td>
+                    <td>
+                        <button class="btn btn-sm btn-secondary" onclick="viewReport('${report.id}')" title="View details and confirm (simple)">View</button>
+                        <button class="btn btn-sm btn-primary" onclick="openUpdateModal('${report.id}')" title="Update status, add notes, upload proof, and confirm">Update</button>
+                    </td>
+                </tr>
+            `).join('');
+        }
+
+        function displayCompletedReports() {
+            const tbody = document.getElementById('completedTableBody');
+            // Filter reports assigned to current technician (compare as strings for UUID)
+            const completedReports = allReports.filter(report => 
+                String(report.assigned_to) === String(currentUser.id) && 
+                (report.status === 'Resolved' || report.status === 'Cancelled')
+            );
+            
+            if (completedReports.length === 0) {
+                tbody.innerHTML = '<tr><td colspan="8" class="no-data">No completed reports</td></tr>';
+                return;
+            }
+            
+            tbody.innerHTML = completedReports.map(report => `
+                <tr>
+                    <td>#${report.id.substring(0, 8)}</td>
+                    <td>${report.reporter_name}</td>
+                    <td>${report.location}</td>
+                    <td>${report.issue_type}</td>
+                    <td><span class="priority priority-${report.priority.toLowerCase()}">${report.priority}</span></td>
+                    <td><span class="status status-${report.status.toLowerCase().replace(' ', '-')}">${report.status}</span></td>
+                    <td>${report.updated_at ? new Date(report.updated_at).toLocaleDateString() : 'N/A'}</td>
+                    <td>
+                        <button class="btn btn-sm btn-secondary" onclick="viewReport('${report.id}')">View</button>
+                    </td>
+                </tr>
+            `).join('');
+        }
+
+        function viewReport(reportId) {
+            currentReportId = reportId;
+            const report = allReports.find(r => r.id === reportId);
+            if (!report) return;
+            
+            // Get priority and status colors
+            const priorityColors = {
+                'Low': '#10b981',
+                'Medium': '#f59e0b',
+                'High': '#ef4444',
+                'Urgent': '#dc2626'
+            };
+            
+            const statusColors = {
+                'Pending': '#f59e0b',
+                'In Progress': '#2563eb',
+                'Resolved': '#10b981',
+                'Cancelled': '#64748b'
+            };
+            
+            document.getElementById('reportModalBody').innerHTML = `
+                <div class="report-details-enhanced">
+                    <!-- Header Section -->
+                    <div class="report-header-section">
+                        <div class="report-id-badge">
+                            <span class="badge-icon">📋</span>
+                            <span class="badge-text">Report #${report.id.substring(0, 8)}</span>
+                        </div>
+                        <div class="report-status-badge" style="background-color: ${statusColors[report.status] || '#64748b'}20; color: ${statusColors[report.status] || '#64748b'};">
+                            <span class="status-dot" style="background-color: ${statusColors[report.status] || '#64748b'};"></span>
+                            ${report.status}
+                        </div>
+                    </div>
+                    
+                    <!-- Main Content Grid -->
+                    <div class="report-content-grid">
+                        <!-- Left Column -->
+                        <div class="report-info-section">
+                            <h4 class="section-title">
+                                <span class="section-icon">👤</span>
+                                Reporter Information
+                            </h4>
+                            <div class="info-card">
+                                <div class="info-item">
+                                    <span class="info-label">📝 Name</span>
+                                    <span class="info-value">${report.reporter_name}</span>
+                                </div>
+                                <div class="info-item">
+                                    <span class="info-label">📧 Email</span>
+                                    <span class="info-value">${report.email}</span>
+                                </div>
+                                <div class="info-item">
+                                    <span class="info-label">📍 Location</span>
+                                    <span class="info-value">${report.location}</span>
+                                </div>
+                            </div>
+                            
+                            <h4 class="section-title">
+                                <span class="section-icon">🔧</span>
+                                Issue Details
+                            </h4>
+                            <div class="info-card">
+                                <div class="info-item">
+                                    <span class="info-label">🏷️ Issue Type</span>
+                                    <span class="info-badge issue-type-badge">${report.issue_type}</span>
+                                </div>
+                                <div class="info-item">
+                                    <span class="info-label">⚡ Priority</span>
+                                    <span class="info-badge" style="background-color: ${priorityColors[report.priority] || '#64748b'}20; color: ${priorityColors[report.priority] || '#64748b'}; border: 2px solid ${priorityColors[report.priority] || '#64748b'};">
+                                        ${report.priority || 'Medium'}
+                                    </span>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <!-- Right Column -->
+                        <div class="report-description-section">
+                            <h4 class="section-title">
+                                <span class="section-icon">📄</span>
+                                Description
+                            </h4>
+                            <div class="description-card">
+                                <p class="description-text">${report.description}</p>
+                            </div>
+                            
+                            ${report.admin_note ? `
+                                <h4 class="section-title">
+                                    <span class="section-icon">💬</span>
+                                    Previous Notes
+                                </h4>
+                                <div class="admin-note-card">
+                                    <p class="description-text">${report.admin_note}</p>
+                                </div>
+                            ` : ''}
+                            
+                            ${report.image_path ? `
+                                <h4 class="section-title">
+                                    <span class="section-icon">🖼️</span>
+                                    Original Report Image
+                                </h4>
+                                <div class="image-preview-card">
+                                    <img src="http://localhost:3000${report.image_path}" alt="Report Image" class="report-image-preview" onerror="this.style.display='none'">
+                                </div>
+                            ` : ''}
+                            ${report.completion_proof_path ? `
+                                <h4 class="section-title">
+                                    <span class="section-icon">✅</span>
+                                    Completion Proof
+                                </h4>
+                                <div class="image-preview-card">
+                                    <img src="http://localhost:3000${report.completion_proof_path}" alt="Completion Proof" class="report-image-preview" onerror="this.style.display='none'">
+                                </div>
+                            ` : ''}
+                        </div>
+                    </div>
+                    
+                    <!-- Footer Section -->
+                    <div class="report-footer-section">
+                        <div class="timestamp-item">
+                            <span class="timestamp-icon">📅</span>
+                            <div class="timestamp-content">
+                                <span class="timestamp-label">Created</span>
+                                <span class="timestamp-value">${new Date(report.created_at).toLocaleString('en-US', { dateStyle: 'medium', timeStyle: 'short' })}</span>
+                            </div>
+                        </div>
+                        ${report.updated_at ? `
+                            <div class="timestamp-item">
+                                <span class="timestamp-icon">🔄</span>
+                                <div class="timestamp-content">
+                                    <span class="timestamp-label">Last Updated</span>
+                                    <span class="timestamp-value">${new Date(report.updated_at).toLocaleString('en-US', { dateStyle: 'medium', timeStyle: 'short' })}</span>
+                                </div>
+                            </div>
+                        ` : ''}
+                    </div>
+                </div>
+            `;
+            
+            document.getElementById('reportModal').style.display = 'block';
+        }
+
+        function openUpdateModal(reportId) {
+            currentReportId = reportId;
+            document.getElementById('confirmModal').style.display = 'block';
+            
+            // Setup image preview when modal opens
+            const proofInput = document.getElementById('completion_proof');
+            if (proofInput) {
+                proofInput.onchange = function(e) {
+                    const file = e.target.files[0];
+                    if (file) {
+                        const reader = new FileReader();
+                        reader.onload = function(e) {
+                            document.getElementById('proofPreviewImg').src = e.target.result;
+                            document.getElementById('proofPreview').style.display = 'block';
+                        };
+                        reader.readAsDataURL(file);
+                    } else {
+                        document.getElementById('proofPreview').style.display = 'none';
+                    }
+                };
+            }
+        }
+        
+        function openConfirmModal(reportId) {
+            currentReportId = reportId;
+            document.getElementById('confirmModal').style.display = 'block';
+            
+            // Setup image preview when modal opens
+            const proofInput = document.getElementById('completion_proof');
+            if (proofInput) {
+                proofInput.onchange = function(e) {
+                    const file = e.target.files[0];
+                    if (file) {
+                        const reader = new FileReader();
+                        reader.onload = function(e) {
+                            document.getElementById('proofPreviewImg').src = e.target.result;
+                            document.getElementById('proofPreview').style.display = 'block';
+                        };
+                        reader.readAsDataURL(file);
+                    } else {
+                        document.getElementById('proofPreview').style.display = 'none';
+                    }
+                };
+            }
+        }
+
+        async function submitConfirmation() {
+            const form = document.getElementById('confirmForm');
+            const formData = new FormData(form);
+            
+            try {
+                const token = localStorage.getItem(CONFIG.TOKEN_KEY);
+                const status = formData.get('status');
+                const adminNote = formData.get('admin_note');
+                const proofFile = formData.get('completion_proof');
+                
+                // Prepare update data with confirmation
+                const updateData = {
+                    status: status,
+                    admin_note: adminNote,
+                    confirmed_by_technician: true,
+                    confirmed_at: new Date().toISOString()
+                };
+                
+                // If there's a file, send as FormData, otherwise send as JSON
+                if (proofFile && proofFile.size > 0) {
+                    // Send with file upload
+                    const uploadFormData = new FormData();
+                    uploadFormData.append('status', status);
+                    uploadFormData.append('admin_note', adminNote);
+                    uploadFormData.append('completion_proof', proofFile);
+                    uploadFormData.append('confirmed_by_technician', 'true');
+                    uploadFormData.append('confirmed_at', new Date().toISOString());
+                    
+                    const response = await fetch(`${CONFIG.API_BASE_URL}/reports/${currentReportId}`, {
+                        method: 'PUT',
+                        headers: {
+                            'Authorization': `Bearer ${token}`
+                        },
+                        body: uploadFormData
+                    });
+                    
+                    if (!response.ok) {
+                        const errorData = await response.json().catch(() => ({}));
+                        throw new Error(errorData.error || `Failed to confirm report (${response.status})`);
+                    }
+                    
+                    const result = await response.json();
+                    showMessage('success', '✅ Report updated and confirmed successfully! This report will now appear in the admin\'s "Completed Reports with Proof" section.');
+                } else {
+                    // Send without file (JSON)
+                    await API.reports.update(currentReportId, updateData);
+                    showMessage('success', '✅ Report updated and confirmed successfully! Admin will now see this report as confirmed.');
+                }
+                
+                closeModal('confirmModal');
+                form.reset();
+                const preview = document.getElementById('proofPreview');
+                if (preview) {
+                    preview.style.display = 'none';
+                }
+                // Force reload to update confirmation status
+                setTimeout(() => {
+                    loadReports();
+                }, 500);
+            } catch (error) {
+                console.error('Error confirming report:', error);
+                showMessage('error', error.message || 'Network error confirming report');
+            }
+        }
+        
+        function removeProofPreview() {
+            const proofInput = document.getElementById('completion_proof');
+            if (proofInput) {
+                proofInput.value = '';
+            }
+            const preview = document.getElementById('proofPreview');
+            if (preview) {
+                preview.style.display = 'none';
+            }
+        }
+        
+        async function confirmFromReportDetails() {
+            if (!currentReportId) {
+                showMessage('error', 'No report selected');
+                return;
+            }
+            
+            // Get the current report to preserve its status
+            const report = allReports.find(r => r.id === currentReportId);
+            if (!report) {
+                showMessage('error', 'Report not found');
+                return;
+            }
+            
+            try {
+                const token = localStorage.getItem(CONFIG.TOKEN_KEY);
+                
+                // Confirm the report with current status (no status change, just confirmation)
+                const updateData = {
+                    status: report.status || 'In Progress',
+                    confirmed_by_technician: true,
+                    confirmed_at: new Date().toISOString()
+                };
+                
+                console.log('🔵 Sending confirmation update:', updateData);
+                const result = await API.reports.update(currentReportId, updateData);
+                console.log('✅ Confirmation update response:', result);
+                showMessage('success', '✅ Report confirmed successfully! Admin will now see this report as confirmed.');
+                closeModal('reportModal');
+                // Force reload to update confirmation status
+                setTimeout(() => {
+                    loadReports();
+                }, 500);
+            } catch (error) {
+                console.error('Error confirming report:', error);
+                showMessage('error', error.message || 'Network error confirming report');
+            }
+        }
+
+        function refreshReports() {
+            loadReports();
+            showMessage('success', 'Reports refreshed');
+        }
+
+        function closeModal(modalId) {
+            document.getElementById(modalId).style.display = 'none';
+        }
+
+        function showMessage(type, text) {
+            const messageDiv = document.getElementById('message');
+            messageDiv.className = `message message-${type}`;
+            messageDiv.textContent = text;
+            messageDiv.style.display = 'block';
+            
+            setTimeout(() => {
+                messageDiv.style.display = 'none';
+            }, 3000);
+        }
+
+        function logout() {
+            localStorage.removeItem(CONFIG.TOKEN_KEY);
+            localStorage.removeItem(CONFIG.USER_KEY);
+            window.location.href = '../index.html';
+        }
+
+        // Close modals when clicking outside
+        window.onclick = function(event) {
+            const modals = document.querySelectorAll('.modal');
+            modals.forEach(modal => {
+                if (event.target === modal) {
+                    modal.style.display = 'none';
+                }
+            });
+        };
+    </script>
+</body>
+</html>
+

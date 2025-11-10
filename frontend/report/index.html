@@ -1,0 +1,459 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Report a Water Problem - ESSU Water Maintenance</title>
+    <link rel="stylesheet" href="styles.css">
+    <link rel="icon" type="image/x-icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>💧</text></svg>">
+</head>
+<body>
+    <header class="site-header">
+        <div class="container">
+            <div class="header-content">
+                <div class="logo">
+                    <span class="logo-icon">💧</span>
+                    <h1>ESSU Water Maintenance Portal</h1>
+                </div>
+                <nav class="main-nav">
+                    <a href="../index.html" class="nav-link">Home</a>
+                    <a href="index.html" class="nav-link active">Report a Problem</a>
+                    <a href="../myreports/index.html" class="nav-link">My Reports</a>
+                    <a href="../login/index.html" class="nav-link">Login</a>
+                </nav>
+                <div class="mobile-menu-toggle">
+                    <span></span>
+                    <span></span>
+                    <span></span>
+                </div>
+            </div>
+        </div>
+    </header>
+
+    <main class="container">
+        <div class="page-header">
+            <h2>Report a Water Problem</h2>
+            <p>Help us maintain ESSU's water systems by reporting any issues you encounter.</p>
+        </div>
+
+        <div class="form-container">
+            <form id="reportForm" enctype="multipart/form-data" class="report-form">
+                <div class="form-group">
+                    <label for="reporter_name">Full Name *</label>
+                    <input type="text" id="reporter_name" name="reporter_name" required 
+                           placeholder="Enter your full name">
+                </div>
+
+                <div class="form-group">
+                    <label for="email">Email Address *</label>
+                    <input type="email" id="email" name="email" required 
+                           placeholder="your.email@essu.edu">
+                    <small class="form-help">We'll use this to send you updates about your report</small>
+                </div>
+
+                <div class="form-group">
+                    <label for="location">Location *</label>
+                    <input type="text" id="location" name="location" required 
+                           placeholder="e.g., Building A - Room 101, Cafeteria, Restroom">
+                    <small class="form-help">Be as specific as possible about the location</small>
+                </div>
+
+                <div class="form-group">
+                    <label for="issue_type">Issue Type *</label>
+                    <select id="issue_type" name="issue_type" required>
+                        <option value="">Select an issue type</option>
+                        <option value="Leak">🚰 Water Leak</option>
+                        <option value="Supply">💧 Water Supply Problem</option>
+                        <option value="Drainage">🌊 Drainage Issue</option>
+                        <option value="Other">🔧 Other Problem</option>
+                    </select>
+                </div>
+
+                <div class="form-group">
+                    <label for="priority">Priority Level</label>
+                    <select id="priority" name="priority">
+                        <option value="Low">🟢 Low - Minor inconvenience</option>
+                        <option value="Medium" selected>🟡 Medium - Moderate issue</option>
+                        <option value="High">🟠 High - Significant problem</option>
+                        <option value="Urgent">🔴 Urgent - Safety concern</option>
+                    </select>
+                </div>
+
+                <div class="form-group">
+                    <label for="description">Description *</label>
+                    <textarea id="description" name="description" rows="5" required 
+                              placeholder="Please provide a detailed description of the problem..."></textarea>
+                    <small class="form-help">Include details like when you first noticed the issue, how severe it is, and any other relevant information</small>
+                </div>
+
+                <div class="form-group">
+                    <label for="photo">Photo (Optional)</label>
+                    <div class="file-upload">
+                        <input type="file" id="photo" name="photo" accept="image/*" 
+                               onchange="previewImage(this)">
+                        <label for="photo" class="file-upload-label">
+                            <span class="upload-icon">📷</span>
+                            <span class="upload-text">Choose Photo</span>
+                        </label>
+                    </div>
+                    <div id="imagePreview" class="image-preview" style="display: none;">
+                        <img id="previewImg" src="" alt="Preview">
+                        <button type="button" onclick="removeImage()" class="remove-image">Remove</button>
+                    </div>
+                    <small class="form-help">Upload a photo to help us better understand the issue (max 3MB)</small>
+                </div>
+
+                <div class="form-actions">
+                    <button type="submit" class="btn btn-primary btn-large">
+                        <span class="btn-text">Submit Report</span>
+                        <span class="btn-loading" style="display: none;">Submitting...</span>
+                    </button>
+                    <button type="button" class="btn btn-secondary" onclick="resetForm()">
+                        Reset Form
+                    </button>
+                </div>
+            </form>
+
+            <div id="message" class="message" style="display: none;"></div>
+        </div>
+
+        <div class="report-info">
+            <h3>What Happens Next?</h3>
+            <div class="info-steps">
+                <div class="info-step">
+                    <div class="step-icon">📧</div>
+                    <h4>Confirmation Email</h4>
+                    <p>You'll receive an email confirmation with your report number.</p>
+                </div>
+                <div class="info-step">
+                    <div class="step-icon">👷</div>
+                    <h4>Assignment</h4>
+                    <p>Our maintenance team will review and assign your report to a technician.</p>
+                </div>
+                <div class="info-step">
+                    <div class="step-icon">🔔</div>
+                    <h4>Updates</h4>
+                    <p>You'll receive email updates when the status changes or when it's resolved.</p>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <footer class="site-footer">
+        <div class="container">
+            <div class="footer-content">
+                <div class="footer-section">
+                    <h4>ESSU Water Maintenance</h4>
+                    <p>Keeping our campus water systems safe and functional for everyone.</p>
+                </div>
+                <div class="footer-section">
+                    <h4>Quick Links</h4>
+                    <ul>
+                        <li><a href="../index.html">Home</a></li>
+                        <li><a href="../myreports/index.html">My Reports</a></li>
+                        <li><a href="../login/index.html">Staff Login</a></li>
+                    </ul>
+                </div>
+                <div class="footer-section">
+                    <h4>Emergency Contact</h4>
+                    <p>For urgent issues:<br>
+                    Phone: (555) 123-4567<br>
+                    Email: emergency@essu.edu</p>
+                </div>
+            </div>
+            <div class="footer-bottom">
+                <p>&copy; 2025 ESSU • Water Maintenance Portal</p>
+            </div>
+        </div>
+    </footer>
+
+    <script src="app.js"></script>
+    <script>
+        const form = document.getElementById('reportForm');
+        const messageDiv = document.getElementById('message');
+
+        form.addEventListener('submit', async (e) => {
+            e.preventDefault();
+            
+            const submitBtn = form.querySelector('button[type="submit"]');
+            const btnText = submitBtn.querySelector('.btn-text');
+            const btnLoading = submitBtn.querySelector('.btn-loading');
+            
+            // Show loading state
+            submitBtn.disabled = true;
+            btnText.style.display = 'none';
+            btnLoading.style.display = 'inline';
+            
+            // Declare reportData outside try block so it's accessible in catch block
+            let reportData = null;
+            
+            try {
+                console.log('📝 Starting report submission...');
+                
+                // Validate form first
+                if (!form.checkValidity()) {
+                    form.reportValidity();
+                    console.error('❌ Form validation failed!');
+                    showMessage('error', 'Please fill in all required fields.');
+                    return;
+                }
+                
+                const formData = new FormData(form);
+                
+                // Convert FormData to object for API service
+                // Trim all string values to remove whitespace
+                reportData = {
+                    reporter_name: (formData.get('reporter_name') || '').trim(),
+                    email: (formData.get('email') || '').trim(),
+                    location: (formData.get('location') || '').trim(),
+                    issue_type: (formData.get('issue_type') || '').trim(),
+                    priority: (formData.get('priority') || 'Medium').trim(),
+                    description: (formData.get('description') || '').trim(),
+                    image: formData.get('photo')
+                };
+                
+                console.log('📤 Sending report data:', {
+                    reporter_name: reportData.reporter_name || '(EMPTY)',
+                    email: reportData.email || '(EMPTY)',
+                    location: reportData.location || '(EMPTY)',
+                    issue_type: reportData.issue_type || '(EMPTY)',
+                    priority: reportData.priority || '(EMPTY)',
+                    description: reportData.description ? `${reportData.description.length} chars` : '(EMPTY)',
+                    has_image: !!reportData.image
+                });
+                
+                // Check if required fields are filled (check for empty strings too)
+                const missingFields = [];
+                if (!reportData.reporter_name || reportData.reporter_name.length === 0) {
+                    missingFields.push('Full Name');
+                }
+                if (!reportData.email || reportData.email.length === 0) {
+                    missingFields.push('Email');
+                }
+                if (!reportData.location || reportData.location.length === 0) {
+                    missingFields.push('Location');
+                }
+                if (!reportData.issue_type || reportData.issue_type.length === 0) {
+                    missingFields.push('Issue Type');
+                }
+                if (!reportData.description || reportData.description.length === 0) {
+                    missingFields.push('Description');
+                }
+                
+                if (missingFields.length > 0) {
+                    console.error('❌ Missing required fields:', missingFields);
+                    showMessage('error', `Please fill in all required fields: ${missingFields.join(', ')}`);
+                    return;
+                }
+                
+                // Log all FormData entries for debugging
+                console.log('📋 FormData entries:');
+                for (const [key, value] of formData.entries()) {
+                    if (value instanceof File) {
+                        console.log(`  ${key}: [File] ${value.name} (${value.size} bytes)`);
+                    } else {
+                        console.log(`  ${key}: "${value}" (length: ${value.length})`);
+                    }
+                }
+                
+                console.log('🌐 Calling API.reports.create()...');
+                // Use API service from app.js which handles proper URL detection
+                const result = await API.reports.create(reportData);
+                
+                console.log('✅ Report submitted successfully!', result);
+                
+                // Show success message prominently
+                showMessage('success', `✅ Report submitted successfully! Your report ID is #${result.id}. You will receive a confirmation email shortly.`);
+                
+                // Scroll to message to make it visible
+                messageDiv.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                
+                // Reset form ONLY on success after delay
+                setTimeout(() => {
+                    form.reset();
+                    document.getElementById('imagePreview').style.display = 'none';
+                }, 2000); // 2 seconds delay to show success message
+            } catch (error) {
+                // DO NOT reset form on error - keep user's data
+                // This allows them to see what they entered and fix the error
+                
+                // Log error with multiple methods to ensure it's visible
+                // Use console.group to make errors collapsible but always visible
+                console.group('❌ ========== ERROR SUBMITTING REPORT ==========');
+                console.error('❌ Error submitting report:', error);
+                console.error('❌ Error name:', error.name);
+                console.error('❌ Error message:', error.message);
+                console.error('❌ Error stack:', error.stack);
+                console.error('❌ Error details:', {
+                    message: error.message,
+                    stack: error.stack,
+                    name: error.name,
+                    timestamp: new Date().toISOString()
+                });
+                
+                // Log form data that was submitted (only if available)
+                if (reportData) {
+                    console.error('❌ Form data that was submitted:', {
+                        reporter_name: reportData.reporter_name,
+                        email: reportData.email,
+                        location: reportData.location,
+                        issue_type: reportData.issue_type,
+                        priority: reportData.priority,
+                        description_length: reportData.description ? reportData.description.length : 0,
+                        has_image: !!reportData.image
+                    });
+                } else {
+                    console.error('❌ Form data not available (error occurred before data was prepared)');
+                }
+                
+                // Also log as table for better visibility
+                console.table({
+                    'Error Name': error.name,
+                    'Error Message': error.message,
+                    'Error Type': error.constructor.name,
+                    'Timestamp': new Date().toLocaleString()
+                });
+                console.groupEnd();
+                
+                // Also log with a very prominent marker that won't be missed
+                console.log('%c❌❌❌ ERROR SUBMITTING REPORT ❌❌❌', 'color: red; font-size: 20px; font-weight: bold; background: yellow; padding: 10px;');
+                console.log('%cError Message: ' + error.message, 'color: red; font-size: 16px; font-weight: bold;');
+                console.log('%cTimestamp: ' + new Date().toLocaleString(), 'color: red; font-size: 14px;');
+                console.log('%cForm data preserved - you can fix and resubmit', 'color: orange; font-size: 14px;');
+                
+                // Show error message to user - make it persistent
+                let errorMsg = error.message || 'Network error. Please check your connection and try again.';
+                if (error.message.includes('Failed to fetch') || error.message.includes('NetworkError')) {
+                    errorMsg = 'Cannot connect to backend server. Make sure the backend server is running on port 3000.';
+                }
+                
+                // Show error message that doesn't auto-hide
+                showMessage('error', `${errorMsg}\n\n⚠️ Your form data has been preserved. Please check console (F12) for more details.`);
+                
+                // Also show error notification that stays longer
+                if (typeof Notifications !== 'undefined') {
+                    Notifications.error(`Report submission failed: ${errorMsg}`, 60000); // 60 seconds - longer
+                }
+                
+                // Scroll to error message to make it visible
+                setTimeout(() => {
+                    messageDiv.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                }, 100);
+                
+                // Keep form data - don't reset on error
+                // User can see what they entered and fix the issue
+            } finally {
+                // Reset button state
+                submitBtn.disabled = false;
+                btnText.style.display = 'inline';
+                btnLoading.style.display = 'none';
+            }
+        });
+
+        function showMessage(type, text) {
+            messageDiv.className = `message message-${type}`;
+            messageDiv.textContent = text;
+            messageDiv.style.display = 'block';
+            messageDiv.style.visibility = 'visible';
+            messageDiv.style.opacity = '1';
+            
+            // Also use notification system from app.js for better visibility
+            if (typeof Notifications !== 'undefined') {
+                if (type === 'success') {
+                    Notifications.success(text, 10000); // Show for 10 seconds
+                } else if (type === 'error') {
+                    // Error messages stay longer - don't auto-hide
+                    Notifications.error(text, 30000); // 30 seconds
+                }
+            }
+            
+            // Auto-hide success messages after 15 seconds (longer for visibility)
+            if (type === 'success') {
+                setTimeout(() => {
+                    messageDiv.style.opacity = '0';
+                    setTimeout(() => {
+                        messageDiv.style.display = 'none';
+                    }, 300);
+                }, 15000); // 15 seconds
+            }
+            // Error messages NEVER auto-hide - user must close them manually or refresh
+            // This ensures users see the error and can fix it
+            // Form data is preserved so they can correct their input
+        }
+
+        function resetForm() {
+            if (confirm('Are you sure you want to reset the form? All entered data will be lost.')) {
+                form.reset();
+                document.getElementById('imagePreview').style.display = 'none';
+                messageDiv.style.display = 'none';
+            }
+        }
+
+        function previewImage(input) {
+            if (input.files && input.files[0]) {
+                const reader = new FileReader();
+                
+                reader.onload = function(e) {
+                    const preview = document.getElementById('imagePreview');
+                    const img = document.getElementById('previewImg');
+                    img.src = e.target.result;
+                    preview.style.display = 'block';
+                };
+                
+                reader.readAsDataURL(input.files[0]);
+            }
+        }
+
+        function removeImage() {
+            document.getElementById('photo').value = '';
+            document.getElementById('imagePreview').style.display = 'none';
+        }
+
+        // Mobile menu toggle
+        const mobileMenuToggle = document.querySelector('.mobile-menu-toggle');
+        const mainNav = document.querySelector('.main-nav');
+
+        mobileMenuToggle.addEventListener('click', function() {
+            mainNav.classList.toggle('active');
+            mobileMenuToggle.classList.toggle('active');
+        });
+
+        // Form validation
+        const requiredFields = form.querySelectorAll('[required]');
+        requiredFields.forEach(field => {
+            field.addEventListener('blur', validateField);
+            field.addEventListener('input', clearFieldError);
+        });
+
+        function validateField(e) {
+            const field = e.target;
+            if (!field.value.trim()) {
+                field.classList.add('error');
+                showFieldError(field, 'This field is required');
+            }
+        }
+
+        function clearFieldError(e) {
+            const field = e.target;
+            field.classList.remove('error');
+            hideFieldError(field);
+        }
+
+        function showFieldError(field, message) {
+            hideFieldError(field);
+            const errorDiv = document.createElement('div');
+            errorDiv.className = 'field-error';
+            errorDiv.textContent = message;
+            field.parentNode.appendChild(errorDiv);
+        }
+
+        function hideFieldError(field) {
+            const existingError = field.parentNode.querySelector('.field-error');
+            if (existingError) {
+                existingError.remove();
+            }
+        }
+    </script>
+</body>
+</html>
+

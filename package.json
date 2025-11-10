@@ -1,0 +1,19 @@
+{
+  "name": "essu-water-maintenance",
+  "version": "1.0.0",
+  "description": "ESSU Water Maintenance Portal - Full Stack Application",
+  "scripts": {
+    "start": "cd backend && npm start",
+    "dev": "cd backend && npm run dev",
+    "install-all": "cd backend && npm install",
+    "setup": "cd backend && npm run setup"
+  },
+  "keywords": [
+    "water",
+    "maintenance",
+    "essu"
+  ],
+  "author": "",
+  "license": "ISC"
+}
+

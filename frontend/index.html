@@ -1,0 +1,218 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ESSU Water Maintenance Portal</title>
+    <link rel="stylesheet" href="styles.css">
+    <link rel="icon" type="image/x-icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>💧</text></svg>">
+</head>
+<body>
+    <header class="site-header">
+        <div class="container">
+            <div class="header-content">
+                <div class="logo">
+                    <span class="logo-icon">💧</span>
+                    <h1>ESSU Water Maintenance Portal</h1>
+                </div>
+                <nav class="main-nav">
+                    <a href="index.html" class="nav-link active">Home</a>
+                    <a href="report/index.html" class="nav-link">Report a Problem</a>
+                    <a href="myreports/index.html" class="nav-link">My Reports</a>
+                    <a href="login/index.html" class="nav-link">Login</a>
+                </nav>
+                <div class="mobile-menu-toggle">
+                    <span></span>
+                    <span></span>
+                    <span></span>
+                </div>
+            </div>
+        </div>
+    </header>
+
+    <main class="container">
+        <section class="hero">
+            <div class="hero-content">
+                <h2>Report Water Issues Quickly</h2>
+                <p class="hero-subtitle">Help us keep ESSU safe & functional by reporting leaks, broken faucets, low supply, or drainage problems. Our maintenance team will respond promptly.</p>
+                <div class="hero-actions">
+                    <a href="report/index.html" class="btn btn-primary btn-large">Report Now</a>
+                    <a href="#how-it-works" class="btn btn-secondary btn-large">How It Works</a>
+                </div>
+            </div>
+            <div class="hero-image">
+                <div class="water-drop-animation">💧</div>
+            </div>
+        </section>
+
+        <section id="how-it-works" class="how-it-works">
+            <h3>How It Works</h3>
+            <div class="steps">
+                <div class="step">
+                    <div class="step-number">1</div>
+                    <h4>Report Issue</h4>
+                    <p>Fill out our simple form with details about the water problem you've encountered.</p>
+                </div>
+                <div class="step">
+                    <div class="step-number">2</div>
+                    <h4>We Review</h4>
+                    <p>Our maintenance team reviews your report and assigns it to the appropriate technician.</p>
+                </div>
+                <div class="step">
+                    <div class="step-number">3</div>
+                    <h4>Get Updates</h4>
+                    <p>Receive email notifications about the status of your report and when it's resolved.</p>
+                </div>
+            </div>
+        </section>
+
+        <section class="issue-types">
+            <h3>Types of Issues We Handle</h3>
+            <div class="issue-grid">
+                <div class="issue-card">
+                    <div class="issue-icon">🚰</div>
+                    <h4>Water Leaks</h4>
+                    <p>Ceiling leaks, pipe bursts, faucet drips, and other water leakage issues.</p>
+                </div>
+                <div class="issue-card">
+                    <div class="issue-icon">💧</div>
+                    <h4>Supply Problems</h4>
+                    <p>Low water pressure, no water supply, or inconsistent water flow.</p>
+                </div>
+                <div class="issue-card">
+                    <div class="issue-icon">🌊</div>
+                    <h4>Drainage Issues</h4>
+                    <p>Clogged drains, standing water, or poor drainage systems.</p>
+                </div>
+                <div class="issue-card">
+                    <div class="issue-icon">🔧</div>
+                    <h4>Other Problems</h4>
+                    <p>Any other water-related maintenance issues not covered above.</p>
+                </div>
+            </div>
+        </section>
+
+        <section id="recent-reports" class="recent-reports">
+            <h3>Recent Activity</h3>
+            <div class="reports-container">
+                <div id="reports-list" class="reports-list">
+                    <div class="loading">Loading recent reports...</div>
+                </div>
+                <div class="reports-footer">
+                    <p>Showing recent resolved and in-progress reports</p>
+                </div>
+            </div>
+        </section>
+
+        <section class="emergency-contact">
+            <div class="emergency-card">
+                <h3>🚨 Emergency Contact</h3>
+                <p>For urgent water emergencies that require immediate attention:</p>
+                <div class="contact-info">
+                    <p><strong>Emergency Hotline:</strong> (555) 123-4567</p>
+                    <p><strong>Email:</strong> emergency@essu.edu</p>
+                </div>
+            </div>
+        </section>
+    </main>
+
+    <footer class="site-footer">
+        <div class="container">
+            <div class="footer-content">
+                <div class="footer-section">
+                    <h4>ESSU Water Maintenance</h4>
+                    <p>Keeping our campus water systems safe and functional for everyone.</p>
+                </div>
+                <div class="footer-section">
+                    <h4>Quick Links</h4>
+                    <ul>
+                        <li><a href="report/index.html">Report a Problem</a></li>
+                        <li><a href="myreports/index.html">My Reports</a></li>
+                        <li><a href="login/index.html">Staff Login</a></li>
+                    </ul>
+                </div>
+                <div class="footer-section">
+                    <h4>Contact</h4>
+                    <p>Maintenance Office<br>
+                    Building D, Room 201<br>
+                    Phone: (555) 123-4567</p>
+                </div>
+            </div>
+            <div class="footer-bottom">
+                <p>&copy; 2025 ESSU • Water Maintenance Portal</p>
+            </div>
+        </div>
+    </footer>
+
+    <script src="app.js"></script>
+    <script>
+        // Load recent reports on page load
+        document.addEventListener('DOMContentLoaded', function() {
+            loadRecentReports();
+        });
+
+        async function loadRecentReports() {
+            try {
+                console.log('📋 Loading recent reports...');
+                // Use API service from app.js which handles proper URL detection
+                const reports = await API.reports.getPublic();
+                console.log(`✅ Loaded ${reports.length} reports`);
+                
+                const reportsList = document.getElementById('reports-list');
+                
+                if (reports.length === 0) {
+                    reportsList.innerHTML = '<div class="no-reports">No recent reports to display</div>';
+                    console.log('ℹ️ No reports to display');
+                    return;
+                }
+
+                reportsList.innerHTML = reports.map(report => `
+                    <div class="report-item">
+                        <div class="report-header">
+                            <span class="report-location">${report.location}</span>
+                            <span class="report-status status-${report.status.toLowerCase().replace(' ', '-')}">${report.status}</span>
+                        </div>
+                        <div class="report-details">
+                            <span class="report-type">${report.issue_type}</span>
+                            <span class="report-date">${new Date(report.created_at).toLocaleDateString()}</span>
+                        </div>
+                    </div>
+                `).join('');
+                console.log('✅ Reports displayed successfully');
+            } catch (error) {
+                console.error('❌ Error loading recent reports:', error);
+                console.error('Error details:', {
+                    message: error.message,
+                    stack: error.stack,
+                    name: error.name
+                });
+                document.getElementById('reports-list').innerHTML = '<div class="error">Unable to load recent reports. Check console (F12) for details.</div>';
+            }
+        }
+
+        // Mobile menu toggle
+        const mobileMenuToggle = document.querySelector('.mobile-menu-toggle');
+        const mainNav = document.querySelector('.main-nav');
+
+        mobileMenuToggle.addEventListener('click', function() {
+            mainNav.classList.toggle('active');
+            mobileMenuToggle.classList.toggle('active');
+        });
+
+        // Smooth scrolling for anchor links
+        document.querySelectorAll('a[href^="#"]').forEach(anchor => {
+            anchor.addEventListener('click', function (e) {
+                e.preventDefault();
+                const target = document.querySelector(this.getAttribute('href'));
+                if (target) {
+                    target.scrollIntoView({
+                        behavior: 'smooth',
+                        block: 'start'
+                    });
+                }
+            });
+        });
+    </script>
+</body>
+</html>
+

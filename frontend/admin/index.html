@@ -1,0 +1,1153 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Admin Dashboard - ESSU Water Maintenance</title>
+    <link rel="stylesheet" href="styles.css">
+    <link rel="icon" type="image/x-icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>💧</text></svg>">
+</head>
+<body class="admin-page">
+    <header class="admin-header">
+        <div class="container">
+            <div class="header-content">
+                <div class="logo">
+                    <span class="logo-icon">💧</span>
+                    <h1>ESSU Water Maintenance - Admin</h1>
+                </div>
+                <div class="admin-nav">
+                    <a href="#reports" class="nav-link active">Reports</a>
+                    <a href="#completed-proof" class="nav-link">Completed with Proof</a>
+                    <a href="#users" class="nav-link">Users</a>
+                    <a href="#statistics" class="nav-link">Statistics</a>
+                </div>
+                <div class="user-menu">
+                    <span class="user-name" id="userName">Loading...</span>
+                    <button class="logout-btn" onclick="logout()">Logout</button>
+                </div>
+            </div>
+        </div>
+    </header>
+
+    <main class="container">
+        <!-- Reports Section -->
+        <section id="reports" class="admin-section active">
+            <div class="section-header">
+                <h2>Maintenance Reports</h2>
+                <div class="section-actions">
+                    <div class="filter-controls">
+                        <select id="statusFilter" onchange="filterReports()">
+                            <option value="">All Status</option>
+                            <option value="Pending">Pending</option>
+                            <option value="In Progress">In Progress</option>
+                            <option value="Resolved">Resolved</option>
+                            <option value="Cancelled">Cancelled</option>
+                        </select>
+                        <select id="priorityFilter" onchange="filterReports()">
+                            <option value="">All Priority</option>
+                            <option value="Low">Low</option>
+                            <option value="Medium">Medium</option>
+                            <option value="High">High</option>
+                            <option value="Urgent">Urgent</option>
+                        </select>
+                        <select id="confirmationFilter" onchange="filterReports()">
+                            <option value="">All Confirmation</option>
+                            <option value="confirmed">✅ Confirmed</option>
+                            <option value="pending">⏳ Pending</option>
+                        </select>
+                    </div>
+                    <button class="btn btn-primary" onclick="refreshReports()">Refresh</button>
+                </div>
+            </div>
+
+            <div class="reports-table-container">
+                <table id="reportsTable" class="admin-table">
+                    <thead>
+                        <tr>
+                            <th>ID</th>
+                            <th>Reporter</th>
+                            <th>Location</th>
+                            <th>Issue</th>
+                            <th>Priority</th>
+                            <th>Status</th>
+                            <th>Assigned To</th>
+                            <th>Confirmation</th>
+                            <th>Created</th>
+                            <th>Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody id="reportsTableBody">
+                        <tr>
+                            <td colspan="10" class="loading">Loading reports...</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+
+            <div class="pagination">
+                <button id="prevPage" onclick="changePage(-1)" disabled>Previous</button>
+                <span id="pageInfo">Page 1 of 1</span>
+                <button id="nextPage" onclick="changePage(1)" disabled>Next</button>
+            </div>
+        </section>
+
+        <!-- Users Section -->
+        <section id="users" class="admin-section">
+            <div class="section-header">
+                <h2>User Management</h2>
+                <button class="btn btn-primary" onclick="showAddUserModal()">Add User</button>
+            </div>
+
+            <div class="users-table-container">
+                <table id="usersTable" class="admin-table">
+                    <thead>
+                        <tr>
+                            <th>ID</th>
+                            <th>Name</th>
+                            <th>Email</th>
+                            <th>Role</th>
+                            <th>Status</th>
+                            <th>Created</th>
+                            <th>Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody id="usersTableBody">
+                        <tr>
+                            <td colspan="7" class="loading">Loading users...</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </section>
+
+        <!-- Completed with Proof Section -->
+        <section id="completed-proof" class="admin-section">
+            <div class="section-header">
+                <h2>Completed Reports with Proof</h2>
+                <div class="section-actions">
+                    <button class="btn btn-primary" onclick="refreshCompletedProof()">Refresh</button>
+                </div>
+            </div>
+
+            <div class="reports-table-container">
+                <table id="completedProofTable" class="admin-table">
+                    <thead>
+                        <tr>
+                            <th>ID</th>
+                            <th>Reporter</th>
+                            <th>Location</th>
+                            <th>Issue</th>
+                            <th>Priority</th>
+                            <th>Status</th>
+                            <th>Assigned To</th>
+                            <th>Notes</th>
+                            <th>Completion Proof</th>
+                            <th>Confirmed</th>
+                            <th>Completed Date</th>
+                            <th>Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody id="completedProofTableBody">
+                        <tr>
+                            <td colspan="12" class="loading">Loading completed reports with proof...</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+
+            <div class="pagination">
+                <button id="prevPageProof" onclick="changePageProof(-1)" disabled>Previous</button>
+                <span id="pageInfoProof">Page 1 of 1</span>
+                <button id="nextPageProof" onclick="changePageProof(1)" disabled>Next</button>
+            </div>
+        </section>
+
+        <!-- Statistics Section -->
+        <section id="statistics" class="admin-section">
+            <div class="section-header">
+                <h2>Statistics Dashboard</h2>
+                <div class="date-range">
+                    <input type="date" id="startDate" onchange="updateStatistics()">
+                    <span>to</span>
+                    <input type="date" id="endDate" onchange="updateStatistics()">
+                </div>
+            </div>
+
+            <div class="stats-grid">
+                <div class="stat-card">
+                    <div class="stat-icon">📊</div>
+                    <div class="stat-content">
+                        <h3 id="totalReports">0</h3>
+                        <p>Total Reports</p>
+                    </div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-icon">⏳</div>
+                    <div class="stat-content">
+                        <h3 id="pendingReports">0</h3>
+                        <p>Pending</p>
+                    </div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-icon">🔧</div>
+                    <div class="stat-content">
+                        <h3 id="inProgressReports">0</h3>
+                        <p>In Progress</p>
+                    </div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-icon">✅</div>
+                    <div class="stat-content">
+                        <h3 id="resolvedReports">0</h3>
+                        <p>Resolved</p>
+                    </div>
+                </div>
+                <div class="stat-card" style="border-left: 4px solid #10b981;">
+                    <div class="stat-icon">✅</div>
+                    <div class="stat-content">
+                        <h3 id="confirmedReports">0</h3>
+                        <p>Confirmed by Technician</p>
+                    </div>
+                </div>
+                <div class="stat-card" style="border-left: 4px solid #f59e0b;">
+                    <div class="stat-icon">⏳</div>
+                    <div class="stat-content">
+                        <h3 id="pendingConfirmationReports">0</h3>
+                        <p>Pending Confirmation</p>
+                    </div>
+                </div>
+            </div>
+
+            <div class="charts-container">
+                <div class="chart-card">
+                    <h3>Reports by Issue Type</h3>
+                    <canvas id="issueTypeChart"></canvas>
+                </div>
+                <div class="chart-card">
+                    <h3>Reports by Priority</h3>
+                    <canvas id="priorityChart"></canvas>
+                </div>
+            </div>
+        </section>
+    </main>
+
+    <!-- Report Details Modal -->
+    <div id="reportModal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3>Report Details</h3>
+                <button class="modal-close" onclick="closeModal('reportModal')">&times;</button>
+            </div>
+            <div class="modal-body" id="reportModalBody">
+                <!-- Report details will be loaded here -->
+            </div>
+            <div class="modal-footer">
+                <button class="btn btn-secondary" onclick="closeModal('reportModal')">Close</button>
+                <button class="btn btn-primary" onclick="updateReportStatus()">Update Status</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Add User Modal -->
+    <div id="addUserModal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3>Add New User</h3>
+                <button class="modal-close" onclick="closeModal('addUserModal')">&times;</button>
+            </div>
+            <div class="modal-body">
+                <form id="addUserForm" class="user-form">
+                    <div class="form-group">
+                        <label for="userFullName">Full Name</label>
+                        <input type="text" id="userFullName" name="full_name" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="userEmail">Email</label>
+                        <input type="email" id="userEmail" name="email" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="userPassword">Password</label>
+                        <input type="password" id="userPassword" name="password" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="userRole">Role</label>
+                        <select id="userRole" name="role" required>
+                            <option value="user">User</option>
+                            <option value="technician">Technician</option>
+                            <option value="admin">Admin</option>
+                        </select>
+                    </div>
+                </form>
+            </div>
+            <div class="modal-footer">
+                <button class="btn btn-secondary" onclick="closeModal('addUserModal')">Cancel</button>
+                <button class="btn btn-primary" onclick="addUser()">Add User</button>
+            </div>
+        </div>
+    </div>
+
+    <div id="message" class="message" style="display: none;"></div>
+
+    <script src="app.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script>
+        let currentPage = 1;
+        let totalPages = 1;
+        let currentPageProof = 1;
+        let totalPagesProof = 1;
+        let currentUser = null;
+        let allReports = [];
+        let filteredReports = [];
+        let completedProofReports = [];
+        let filteredCompletedProof = [];
+        let allUsers = [];
+        let issueTypeChart = null;
+        let priorityChart = null;
+
+        // Immediate authentication check (before DOM loads)
+        (function() {
+            const token = localStorage.getItem(CONFIG.TOKEN_KEY);
+            const user = localStorage.getItem(CONFIG.USER_KEY);
+            
+            // Check if token is a demo token (not a real JWT)
+            if (token && token.startsWith('demo-token-')) {
+                localStorage.removeItem(CONFIG.TOKEN_KEY);
+                localStorage.removeItem(CONFIG.USER_KEY);
+                window.location.replace('../login/index.html');
+                return;
+            }
+            
+            if (!token || !user) {
+                window.location.replace('../login/index.html');
+                return;
+            }
+            
+            try {
+                const userData = JSON.parse(user);
+                if (userData.role !== 'admin') {
+                    localStorage.removeItem(CONFIG.TOKEN_KEY);
+                    localStorage.removeItem(CONFIG.USER_KEY);
+                    window.location.replace('../login/index.html');
+                    return;
+                }
+            } catch (error) {
+                localStorage.removeItem(CONFIG.TOKEN_KEY);
+                localStorage.removeItem(CONFIG.USER_KEY);
+                window.location.replace('../login/index.html');
+                return;
+            }
+        })();
+
+        // Check authentication on page load
+        document.addEventListener('DOMContentLoaded', function() {
+            checkAuth();
+            // Only load data if authentication is valid
+            const token = localStorage.getItem(CONFIG.TOKEN_KEY);
+            if (token) {
+                loadReports();
+                loadUsers();
+                updateStatistics();
+            }
+            setupNavigation();
+        });
+
+        function checkAuth() {
+            const token = localStorage.getItem(CONFIG.TOKEN_KEY);
+            const user = localStorage.getItem(CONFIG.USER_KEY);
+            
+            if (!token || !user) {
+                console.log('No token or user found, redirecting to login...');
+                window.location.replace('../login/index.html');
+                return;
+            }
+            
+            try {
+                currentUser = JSON.parse(user);
+                
+                if (currentUser.role !== 'admin') {
+                    alert('Admin access required');
+                    localStorage.removeItem(CONFIG.TOKEN_KEY);
+                    localStorage.removeItem(CONFIG.USER_KEY);
+                    window.location.replace('../login/index.html');
+                    return;
+                }
+                
+                document.getElementById('userName').textContent = currentUser.full_name;
+            } catch (error) {
+                console.error('Error parsing user data:', error);
+                localStorage.removeItem(CONFIG.TOKEN_KEY);
+                localStorage.removeItem(CONFIG.USER_KEY);
+                window.location.replace('../login/index.html');
+            }
+        }
+
+        function setupNavigation() {
+            const navLinks = document.querySelectorAll('.admin-nav .nav-link');
+            const sections = document.querySelectorAll('.admin-section');
+            
+            navLinks.forEach(link => {
+                link.addEventListener('click', function(e) {
+                    e.preventDefault();
+                    const targetSection = this.getAttribute('href').substring(1);
+                    
+                    // Update active nav link
+                    navLinks.forEach(l => l.classList.remove('active'));
+                    this.classList.add('active');
+                    
+                    // Show target section
+                    sections.forEach(s => s.classList.remove('active'));
+                    document.getElementById(targetSection).classList.add('active');
+                    
+                    // Load section data if needed
+                    if (targetSection === 'users') {
+                        loadUsers();
+                    } else if (targetSection === 'statistics') {
+                        updateStatistics();
+                    } else if (targetSection === 'completed-proof') {
+                        loadCompletedProof();
+                    }
+                });
+            });
+        }
+
+        async function loadReports() {
+            try {
+                console.log('📋 Loading reports from admin dashboard...');
+                allReports = await API.reports.getAll();
+                console.log(`✅ Loaded ${allReports.length} reports`);
+                // Debug: Check confirmation status for all reports
+                allReports.forEach(report => {
+                    const isConfirmed = report.confirmed_by_technician === true || 
+                                      report.confirmed_by_technician === 'true' || 
+                                      report.confirmed_by_technician === 1 || 
+                                      report.confirmed_by_technician === '1';
+                    console.log(`Report ${report.id.substring(0, 8)}:`, {
+                        confirmed_by_technician: report.confirmed_by_technician,
+                        type: typeof report.confirmed_by_technician,
+                        confirmed_at: report.confirmed_at,
+                        isConfirmed: isConfirmed
+                    });
+                });
+                filteredReports = [...allReports];
+                displayReports();
+                updateStatistics();
+            } catch (error) {
+                console.error('❌ Error loading reports:', error);
+                if (error.message && (error.message.includes('Authentication required') || error.message.includes('Invalid or expired token') || error.message.includes('Forbidden'))) {
+                    showMessage('error', 'Session expired. Please login again.');
+                    localStorage.removeItem(CONFIG.TOKEN_KEY);
+                    localStorage.removeItem(CONFIG.USER_KEY);
+                    setTimeout(() => {
+                        window.location.href = '../login/index.html';
+                    }, 2000);
+                } else {
+                    // Offline mode - show empty state instead of error
+                    console.log('⚠️ Backend not available - running in offline mode');
+                    allReports = [];
+                    filteredReports = [];
+                    displayReports();
+                    updateStatistics();
+                    showMessage('info', 'Running in offline mode. Reports will be empty until backend is connected.');
+                }
+            }
+        }
+
+        function displayReports() {
+            const tbody = document.getElementById('reportsTableBody');
+            const startIndex = (currentPage - 1) * 10;
+            const endIndex = Math.min(startIndex + 10, filteredReports.length);
+            const pageReports = filteredReports.slice(startIndex, endIndex);
+            
+            if (pageReports.length === 0) {
+                tbody.innerHTML = '<tr><td colspan="10" class="no-data">No reports found</td></tr>';
+                return;
+            }
+            
+            tbody.innerHTML = pageReports.map(report => {
+                // Debug confirmation status - check all possible values
+                const confirmedValue = report.confirmed_by_technician;
+                const isConfirmed = confirmedValue === true || 
+                                  confirmedValue === 'true' || 
+                                  confirmedValue === 1 || 
+                                  confirmedValue === '1' ||
+                                  confirmedValue === 'True' ||
+                                  String(confirmedValue).toLowerCase() === 'true';
+                
+                console.log(`Displaying report ${report.id.substring(0, 8)}:`, {
+                    confirmed_by_technician: confirmedValue,
+                    type: typeof confirmedValue,
+                    isConfirmed: isConfirmed,
+                    confirmed_at: report.confirmed_at
+                });
+                
+                return `
+                <tr>
+                    <td>#${report.id}</td>
+                    <td>${report.reporter_name}</td>
+                    <td>${report.location}</td>
+                    <td>${report.issue_type}</td>
+                    <td><span class="priority priority-${report.priority.toLowerCase()}">${report.priority}</span></td>
+                    <td><span class="status status-${report.status.toLowerCase().replace(' ', '-')}">${report.status}</span></td>
+                    <td>${report.assigned_to_name || (report.assigned_to ? 'User #' + report.assigned_to.substring(0, 8) : 'Unassigned')}</td>
+                    <td>
+                        ${isConfirmed ? `
+                            <span class="badge badge-success" title="Confirmed by technician on ${report.confirmed_at ? new Date(report.confirmed_at).toLocaleString() : 'N/A'}" style="font-weight: 700; padding: 6px 12px; font-size: 0.875rem;">
+                                ✅ Confirmed
+                                ${report.confirmed_at ? `<br><small style="font-size: 0.75rem; opacity: 0.8;">${new Date(report.confirmed_at).toLocaleDateString()}</small>` : ''}
+                            </span>
+                        ` : `
+                            <span class="badge badge-warning" style="font-weight: 700; padding: 6px 12px; font-size: 0.875rem;" title="Waiting for technician confirmation">
+                                ⏳ Pending
+                            </span>
+                        `}
+                    </td>
+                    <td>${new Date(report.created_at).toLocaleDateString()}</td>
+                    <td>
+                        <button class="btn btn-sm btn-secondary" onclick="viewReport('${report.id}')">View</button>
+                        <button class="btn btn-sm btn-primary" onclick="editReport('${report.id}')">Edit</button>
+                        <button class="btn btn-sm btn-danger" onclick="deleteReport('${report.id}')">Delete</button>
+                    </td>
+                </tr>
+            `;
+            }).join('');
+            
+            updatePagination();
+        }
+
+        function filterReports() {
+            const statusFilter = document.getElementById('statusFilter').value;
+            const priorityFilter = document.getElementById('priorityFilter').value;
+            const confirmationFilter = document.getElementById('confirmationFilter').value;
+            
+            filteredReports = allReports.filter(report => {
+                const statusMatch = !statusFilter || report.status === statusFilter;
+                const priorityMatch = !priorityFilter || report.priority === priorityFilter;
+                
+                // Check confirmation status
+                const isConfirmed = report.confirmed_by_technician === true || 
+                                  report.confirmed_by_technician === 'true' || 
+                                  report.confirmed_by_technician === 1 || 
+                                  report.confirmed_by_technician === '1' ||
+                                  String(report.confirmed_by_technician).toLowerCase() === 'true';
+                
+                const confirmationMatch = !confirmationFilter || 
+                    (confirmationFilter === 'confirmed' && isConfirmed) ||
+                    (confirmationFilter === 'pending' && !isConfirmed);
+                
+                return statusMatch && priorityMatch && confirmationMatch;
+            });
+            
+            currentPage = 1;
+            displayReports();
+        }
+
+        function changePage(direction) {
+            const newPage = currentPage + direction;
+            if (newPage >= 1 && newPage <= totalPages) {
+                currentPage = newPage;
+                displayReports();
+            }
+        }
+
+        function updatePagination() {
+            totalPages = Math.ceil(filteredReports.length / 10);
+            document.getElementById('pageInfo').textContent = `Page ${currentPage} of ${totalPages}`;
+            document.getElementById('prevPage').disabled = currentPage === 1;
+            document.getElementById('nextPage').disabled = currentPage === totalPages;
+        }
+
+        async function loadUsers() {
+            try {
+                const users = await API.users.getAll();
+                displayUsers(users);
+            } catch (error) {
+                console.error('Error loading users:', error);
+                if (error.message && (error.message.includes('Authentication required') || error.message.includes('Invalid or expired token') || error.message.includes('Forbidden'))) {
+                    showMessage('error', 'Session expired. Please login again.');
+                    localStorage.removeItem(CONFIG.TOKEN_KEY);
+                    localStorage.removeItem(CONFIG.USER_KEY);
+                    setTimeout(() => {
+                        window.location.href = '../login/index.html';
+                    }, 2000);
+                } else {
+                    // Offline mode - show demo users
+                    console.log('⚠️ Backend not available - showing demo users');
+                    const demoUsers = [
+                        {
+                            id: 1,
+                            full_name: 'Admin User',
+                            email: 'admin@essu.edu',
+                            role: 'admin',
+                            created_at: new Date().toISOString()
+                        },
+                        {
+                            id: 2,
+                            full_name: 'Technician User',
+                            email: 'tech@essu.edu',
+                            role: 'technician',
+                            created_at: new Date().toISOString()
+                        }
+                    ];
+                    displayUsers(demoUsers);
+                    showMessage('info', 'Running in offline mode. Showing demo users.');
+                }
+            }
+        }
+
+        function displayUsers(users) {
+            // Store users globally for use in report assignment
+            allUsers = users;
+            
+            const tbody = document.getElementById('usersTableBody');
+            
+            if (users.length === 0) {
+                tbody.innerHTML = '<tr><td colspan="7" class="no-data">No users found</td></tr>';
+                return;
+            }
+            
+            tbody.innerHTML = users.map(user => `
+                <tr>
+                    <td>${user.id}</td>
+                    <td>${user.full_name}</td>
+                    <td>${user.email}</td>
+                    <td><span class="role role-${user.role}">${user.role}</span></td>
+                    <td><span class="status status-active">Active</span></td>
+                    <td>${new Date(user.created_at).toLocaleDateString()}</td>
+                    <td>
+                        <button class="btn btn-sm btn-secondary" onclick="editUser('${user.id}')">Edit</button>
+                        <button class="btn btn-sm btn-danger" onclick="deleteUser('${user.id}')">Delete</button>
+                    </td>
+                </tr>
+            `).join('');
+        }
+
+        function updateStatistics() {
+            // Update stat cards
+            document.getElementById('totalReports').textContent = allReports.length;
+            document.getElementById('pendingReports').textContent = allReports.filter(r => r.status === 'Pending').length;
+            document.getElementById('inProgressReports').textContent = allReports.filter(r => r.status === 'In Progress').length;
+            document.getElementById('resolvedReports').textContent = allReports.filter(r => r.status === 'Resolved').length;
+            
+            // Confirmation statistics
+            const confirmedCount = allReports.filter(r => {
+                const isConfirmed = r.confirmed_by_technician === true || 
+                                  r.confirmed_by_technician === 'true' || 
+                                  r.confirmed_by_technician === 1 || 
+                                  r.confirmed_by_technician === '1' ||
+                                  String(r.confirmed_by_technician).toLowerCase() === 'true';
+                return isConfirmed;
+            }).length;
+            const pendingConfirmationCount = allReports.length - confirmedCount;
+            
+            document.getElementById('confirmedReports').textContent = confirmedCount;
+            document.getElementById('pendingConfirmationReports').textContent = pendingConfirmationCount;
+            
+            // Update charts
+            updateCharts();
+        }
+
+        function updateCharts() {
+            // Destroy existing charts if they exist
+            if (issueTypeChart) {
+                issueTypeChart.destroy();
+                issueTypeChart = null;
+            }
+            if (priorityChart) {
+                priorityChart.destroy();
+                priorityChart = null;
+            }
+            
+            // Issue Type Chart
+            const issueTypeData = {
+                'Leak': allReports.filter(r => r.issue_type === 'Leak').length,
+                'Supply': allReports.filter(r => r.issue_type === 'Supply').length,
+                'Drainage': allReports.filter(r => r.issue_type === 'Drainage').length,
+                'Other': allReports.filter(r => r.issue_type === 'Other').length
+            };
+            
+            const issueTypeCtx = document.getElementById('issueTypeChart');
+            if (issueTypeCtx) {
+                issueTypeChart = new Chart(issueTypeCtx, {
+                    type: 'doughnut',
+                    data: {
+                        labels: Object.keys(issueTypeData),
+                        datasets: [{
+                            data: Object.values(issueTypeData),
+                            backgroundColor: ['#FF6384', '#36A2EB', '#FFCE56', '#4BC0C0']
+                        }]
+                    },
+                    options: {
+                        responsive: true,
+                        maintainAspectRatio: false
+                    }
+                });
+            }
+            
+            // Priority Chart
+            const priorityData = {
+                'Low': allReports.filter(r => r.priority === 'Low').length,
+                'Medium': allReports.filter(r => r.priority === 'Medium').length,
+                'High': allReports.filter(r => r.priority === 'High').length,
+                'Urgent': allReports.filter(r => r.priority === 'Urgent').length
+            };
+            
+            const priorityCtx = document.getElementById('priorityChart');
+            if (priorityCtx) {
+                priorityChart = new Chart(priorityCtx, {
+                    type: 'bar',
+                    data: {
+                        labels: Object.keys(priorityData),
+                        datasets: [{
+                            label: 'Reports',
+                            data: Object.values(priorityData),
+                            backgroundColor: ['#4CAF50', '#FF9800', '#F44336', '#9C27B0']
+                        }]
+                    },
+                    options: {
+                        responsive: true,
+                        maintainAspectRatio: false,
+                        scales: {
+                            y: {
+                                beginAtZero: true
+                            }
+                        }
+                    }
+                });
+            }
+        }
+
+        let currentReportId = null;
+
+        function viewReport(reportId) {
+            const report = allReports.find(r => r.id === reportId);
+            if (!report) return;
+            
+            currentReportId = reportId;
+            
+            // Get priority and status colors
+            const priorityColors = {
+                'Low': '#10b981',
+                'Medium': '#f59e0b',
+                'High': '#ef4444',
+                'Urgent': '#dc2626'
+            };
+            
+            const statusColors = {
+                'Pending': '#f59e0b',
+                'In Progress': '#2563eb',
+                'Resolved': '#10b981',
+                'Cancelled': '#64748b'
+            };
+            
+            document.getElementById('reportModalBody').innerHTML = `
+                <div class="report-details-enhanced">
+                    <!-- Header Section -->
+                    <div class="report-header-section">
+                        <div class="report-id-badge">
+                            <span class="badge-icon">📋</span>
+                            <span class="badge-text">Report #${report.id.substring(0, 8)}</span>
+                        </div>
+                        <div class="report-status-badge" style="background-color: ${statusColors[report.status] || '#64748b'}20; color: ${statusColors[report.status] || '#64748b'};">
+                            <span class="status-dot" style="background-color: ${statusColors[report.status] || '#64748b'};"></span>
+                            ${report.status}
+                        </div>
+                    </div>
+                    
+                    <!-- Main Content Grid -->
+                    <div class="report-content-grid">
+                        <!-- Left Column -->
+                        <div class="report-info-section">
+                            <h4 class="section-title">
+                                <span class="section-icon">👤</span>
+                                Reporter Information
+                            </h4>
+                            <div class="info-card">
+                                <div class="info-item">
+                                    <span class="info-label">📝 Name</span>
+                                    <span class="info-value">${report.reporter_name}</span>
+                                </div>
+                                <div class="info-item">
+                                    <span class="info-label">📧 Email</span>
+                                    <span class="info-value">${report.email}</span>
+                                </div>
+                                <div class="info-item">
+                                    <span class="info-label">📍 Location</span>
+                                    <span class="info-value">${report.location}</span>
+                                </div>
+                            </div>
+                            
+                            <h4 class="section-title">
+                                <span class="section-icon">🔧</span>
+                                Issue Details
+                            </h4>
+                            <div class="info-card">
+                                <div class="info-item">
+                                    <span class="info-label">🏷️ Issue Type</span>
+                                    <span class="info-badge issue-type-badge">${report.issue_type}</span>
+                                </div>
+                                <div class="info-item">
+                                    <span class="info-label">⚡ Priority</span>
+                                    <select id="modalPriority" class="form-select-enhanced" style="border-color: ${priorityColors[report.priority] || '#64748b'};">
+                                        <option value="Low" ${report.priority === 'Low' ? 'selected' : ''}>🟢 Low</option>
+                                        <option value="Medium" ${report.priority === 'Medium' ? 'selected' : ''}>🟡 Medium</option>
+                                        <option value="High" ${report.priority === 'High' ? 'selected' : ''}>🟠 High</option>
+                                        <option value="Urgent" ${report.priority === 'Urgent' ? 'selected' : ''}>🔴 Urgent</option>
+                                    </select>
+                                </div>
+                                <div class="info-item">
+                                    <span class="info-label">📊 Status</span>
+                                    <select id="modalStatus" class="form-select-enhanced" style="border-color: ${statusColors[report.status] || '#64748b'};">
+                                        <option value="Pending" ${report.status === 'Pending' ? 'selected' : ''}>⏳ Pending</option>
+                                        <option value="In Progress" ${report.status === 'In Progress' ? 'selected' : ''}>🔄 In Progress</option>
+                                        <option value="Resolved" ${report.status === 'Resolved' ? 'selected' : ''}>✅ Resolved</option>
+                                        <option value="Cancelled" ${report.status === 'Cancelled' ? 'selected' : ''}>❌ Cancelled</option>
+                                    </select>
+                                </div>
+                                <div class="info-item">
+                                    <span class="info-label">👷 Assign To</span>
+                                    <select id="modalAssignedTo" class="form-select-enhanced">
+                                        <option value="">-- Unassigned --</option>
+                                        ${allUsers.filter(user => user.role === 'technician' || user.role === 'admin').map(user => `
+                                            <option value="${user.id}" ${String(report.assigned_to) === String(user.id) ? 'selected' : ''}>${user.full_name} (${user.role})</option>
+                                        `).join('')}
+                                    </select>
+                                </div>
+                                <div class="info-item">
+                                    <span class="info-label">✅ Confirmation</span>
+                                    ${(report.confirmed_by_technician === true || report.confirmed_by_technician === 'true' || report.confirmed_by_technician === 1) ? `
+                                        <span class="info-badge" style="background-color: #10b98120; color: #065f46; border: 2px solid #10b981;">
+                                            ✅ Confirmed
+                                        </span>
+                                    ` : `
+                                        <span class="info-badge" style="background-color: #f59e0b20; color: #92400e; border: 2px solid #f59e0b;">
+                                            ⏳ Pending
+                                        </span>
+                                    `}
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <!-- Right Column -->
+                        <div class="report-description-section">
+                            <h4 class="section-title">
+                                <span class="section-icon">📄</span>
+                                Description
+                            </h4>
+                            <div class="description-card">
+                                <p class="description-text">${report.description}</p>
+                            </div>
+                            
+                            <h4 class="section-title">
+                                <span class="section-icon">💬</span>
+                                Admin Notes
+                            </h4>
+                            <div class="admin-note-card">
+                                <textarea id="modalAdminNote" class="admin-note-textarea" rows="4" placeholder="Add notes or comments about this report...">${report.admin_note || ''}</textarea>
+                            </div>
+                            
+                            ${report.image_path ? `
+                                <h4 class="section-title">
+                                    <span class="section-icon">🖼️</span>
+                                    Original Report Image
+                                </h4>
+                                <div class="image-preview-card">
+                                    <img src="http://localhost:3000${report.image_path}" alt="Report Image" class="report-image-preview" onerror="this.style.display='none'">
+                                </div>
+                            ` : ''}
+                            ${report.completion_proof_path ? `
+                                <h4 class="section-title">
+                                    <span class="section-icon">✅</span>
+                                    Completion Proof
+                                </h4>
+                                <div class="image-preview-card">
+                                    <img src="http://localhost:3000${report.completion_proof_path}" alt="Completion Proof" class="report-image-preview" onerror="this.style.display='none'">
+                                </div>
+                            ` : ''}
+                        </div>
+                    </div>
+                    
+                    <!-- Footer Section -->
+                    <div class="report-footer-section">
+                        <div class="timestamp-item">
+                            <span class="timestamp-icon">📅</span>
+                            <div class="timestamp-content">
+                                <span class="timestamp-label">Created</span>
+                                <span class="timestamp-value">${new Date(report.created_at).toLocaleString('en-US', { dateStyle: 'medium', timeStyle: 'short' })}</span>
+                            </div>
+                        </div>
+                        ${report.updated_at ? `
+                            <div class="timestamp-item">
+                                <span class="timestamp-icon">🔄</span>
+                                <div class="timestamp-content">
+                                    <span class="timestamp-label">Last Updated</span>
+                                    <span class="timestamp-value">${new Date(report.updated_at).toLocaleString('en-US', { dateStyle: 'medium', timeStyle: 'short' })}</span>
+                                </div>
+                            </div>
+                        ` : ''}
+                        ${report.assigned_to_name ? `
+                            <div class="timestamp-item">
+                                <span class="timestamp-icon">👷</span>
+                                <div class="timestamp-content">
+                                    <span class="timestamp-label">Assigned To</span>
+                                    <span class="timestamp-value">${report.assigned_to_name}</span>
+                                </div>
+                            </div>
+                        ` : ''}
+                        ${(report.confirmed_by_technician === true || report.confirmed_by_technician === 'true' || report.confirmed_by_technician === 1) ? `
+                            <div class="timestamp-item">
+                                <span class="timestamp-icon">✅</span>
+                                <div class="timestamp-content">
+                                    <span class="timestamp-label">Confirmed By Technician</span>
+                                    <span class="timestamp-value">${report.confirmed_at ? new Date(report.confirmed_at).toLocaleString('en-US', { dateStyle: 'medium', timeStyle: 'short' }) : 'N/A'}</span>
+                                </div>
+                            </div>
+                        ` : ''}
+                    </div>
+                </div>
+            `;
+            
+            document.getElementById('reportModal').style.display = 'block';
+        }
+
+        async function updateReportStatus() {
+            if (!currentReportId) {
+                showMessage('error', 'No report selected');
+                return;
+            }
+
+            const status = document.getElementById('modalStatus').value;
+            const priority = document.getElementById('modalPriority').value;
+            const adminNote = document.getElementById('modalAdminNote').value;
+            const assignedTo = document.getElementById('modalAssignedTo').value || null;
+
+            try {
+                await API.reports.update(currentReportId, {
+                    status: status,
+                    priority: priority,
+                    admin_note: adminNote,
+                    assigned_to: assignedTo
+                });
+                showMessage('success', 'Report updated successfully');
+                closeModal('reportModal');
+                // Force reload to get latest data including confirmation status
+                setTimeout(() => {
+                    loadReports();
+                }, 500);
+                currentReportId = null;
+            } catch (error) {
+                console.error('Error updating report:', error);
+                showMessage('error', error.message || 'Network error. Make sure the backend server is running.');
+            }
+        }
+
+        function editReport(reportId) {
+            // Implementation for editing reports
+            alert('Edit functionality coming soon!');
+        }
+
+        async function deleteReport(reportId) {
+            if (!confirm('Are you sure you want to delete this report?')) return;
+            
+            try {
+                await API.reports.delete(reportId);
+                showMessage('success', 'Report deleted successfully');
+                loadReports();
+            } catch (error) {
+                console.error('Error deleting report:', error);
+                showMessage('error', error.message || 'Network error deleting report');
+            }
+        }
+
+        function showAddUserModal() {
+            document.getElementById('addUserModal').style.display = 'block';
+        }
+
+        async function addUser() {
+            const form = document.getElementById('addUserForm');
+            const formData = new FormData(form);
+            
+            try {
+                await API.auth.register({
+                    full_name: formData.get('full_name'),
+                    email: formData.get('email'),
+                    password: formData.get('password'),
+                    role: formData.get('role')
+                });
+                showMessage('success', 'User added successfully');
+                closeModal('addUserModal');
+                form.reset();
+                loadUsers();
+            } catch (error) {
+                console.error('Error adding user:', error);
+                showMessage('error', error.message || 'Network error adding user');
+            }
+        }
+
+        function editUser(userId) {
+            alert('Edit user functionality coming soon!');
+        }
+
+        function deleteUser(userId) {
+            alert('Delete user functionality coming soon!');
+        }
+
+        function refreshReports() {
+            loadReports();
+            showMessage('success', 'Reports refreshed');
+        }
+        
+        // Load completed reports with proof
+        async function loadCompletedProof() {
+            try {
+                const reports = await API.reports.getAll();
+                // Filter reports that have completion_proof_path (uploaded by technician via Update button)
+                // These are reports where technician used Update button, uploaded proof, and confirmed
+                completedProofReports = reports.filter(report => {
+                    const hasProof = report.completion_proof_path && report.completion_proof_path.trim() !== '';
+                    const isConfirmed = report.confirmed_by_technician === true || 
+                                      report.confirmed_by_technician === 'true' || 
+                                      report.confirmed_by_technician === 1 || 
+                                      report.confirmed_by_technician === '1';
+                    // Show reports that have proof (uploaded via Update button)
+                    return hasProof;
+                });
+                filteredCompletedProof = [...completedProofReports];
+                displayCompletedProof();
+            } catch (error) {
+                console.error('Error loading completed proof reports:', error);
+                showMessage('error', 'Failed to load completed proof reports');
+            }
+        }
+        
+        function displayCompletedProof() {
+            const tbody = document.getElementById('completedProofTableBody');
+            const startIndex = (currentPageProof - 1) * 10;
+            const endIndex = Math.min(startIndex + 10, filteredCompletedProof.length);
+            const pageReports = filteredCompletedProof.slice(startIndex, endIndex);
+            
+            if (pageReports.length === 0) {
+                tbody.innerHTML = '<tr><td colspan="12" class="no-data">No completed reports with proof found</td></tr>';
+                return;
+            }
+            
+            tbody.innerHTML = pageReports.map(report => `
+                <tr>
+                    <td>#${report.id.substring(0, 8)}</td>
+                    <td>${report.reporter_name}</td>
+                    <td>${report.location}</td>
+                    <td>${report.issue_type}</td>
+                    <td><span class="priority priority-${report.priority.toLowerCase()}">${report.priority}</span></td>
+                    <td><span class="status status-${report.status.toLowerCase().replace(' ', '-')}">${report.status}</span></td>
+                    <td>${report.assigned_to_name || (report.assigned_to ? 'User #' + report.assigned_to.substring(0, 8) : 'Unassigned')}</td>
+                    <td>
+                        ${report.admin_note ? `
+                            <div class="notes-cell" title="${report.admin_note.replace(/"/g, '&quot;')}">
+                                <span class="notes-text">${report.admin_note.length > 50 ? report.admin_note.substring(0, 50) + '...' : report.admin_note}</span>
+                            </div>
+                        ` : '<span class="text-muted">No notes</span>'}
+                    </td>
+                    <td>
+                        ${report.completion_proof_path ? `
+                            <img src="http://localhost:3000${report.completion_proof_path}" 
+                                 alt="Completion Proof" 
+                                 class="proof-thumbnail"
+                                 onclick="viewProofImage('${report.completion_proof_path}')"
+                                 onerror="this.style.display='none'">
+                        ` : '<span class="text-muted">No proof</span>'}
+                    </td>
+                    <td>
+                        ${(report.confirmed_by_technician === true || report.confirmed_by_technician === 'true' || report.confirmed_by_technician === 1) ? `
+                            <span class="badge badge-success" title="Confirmed on ${report.confirmed_at ? new Date(report.confirmed_at).toLocaleString() : 'N/A'}">
+                                ✅ Confirmed
+                                ${report.confirmed_at ? `<br><small style="font-size: 0.75rem; opacity: 0.8;">${new Date(report.confirmed_at).toLocaleDateString()}</small>` : ''}
+                            </span>
+                        ` : `
+                            <span class="badge badge-warning">⏳ Pending</span>
+                        `}
+                    </td>
+                    <td>${report.updated_at ? new Date(report.updated_at).toLocaleDateString() : 'N/A'}</td>
+                    <td>
+                        <button class="btn btn-sm btn-secondary" onclick="viewReport('${report.id}')">View</button>
+                        <button class="btn btn-sm btn-primary" onclick="editReport('${report.id}')">Edit</button>
+                    </td>
+                </tr>
+            `).join('');
+            
+            // Update pagination
+            totalPagesProof = Math.ceil(filteredCompletedProof.length / 10);
+            document.getElementById('pageInfoProof').textContent = `Page ${currentPageProof} of ${totalPagesProof}`;
+            document.getElementById('prevPageProof').disabled = currentPageProof === 1;
+            document.getElementById('nextPageProof').disabled = currentPageProof === totalPagesProof;
+        }
+        
+        function changePageProof(direction) {
+            const newPage = currentPageProof + direction;
+            if (newPage >= 1 && newPage <= totalPagesProof) {
+                currentPageProof = newPage;
+                displayCompletedProof();
+            }
+        }
+        
+        function refreshCompletedProof() {
+            loadCompletedProof();
+            showMessage('success', 'Completed proof reports refreshed');
+        }
+        
+        function viewProofImage(imagePath) {
+            // Open proof image in a modal or new window
+            const modal = document.createElement('div');
+            modal.className = 'modal';
+            modal.style.display = 'block';
+            modal.innerHTML = `
+                <div class="modal-content" style="max-width: 90%; max-height: 90vh;">
+                    <div class="modal-header">
+                        <h3>Completion Proof</h3>
+                        <button class="modal-close" onclick="this.closest('.modal').remove()">&times;</button>
+                    </div>
+                    <div class="modal-body" style="text-align: center; padding: 20px;">
+                        <img src="http://localhost:3000${imagePath}" alt="Completion Proof" style="max-width: 100%; max-height: 80vh; border-radius: 8px;">
+                    </div>
+                </div>
+            `;
+            document.body.appendChild(modal);
+            modal.onclick = function(e) {
+                if (e.target === modal) {
+                    modal.remove();
+                }
+            };
+        }
+
+        function closeModal(modalId) {
+            document.getElementById(modalId).style.display = 'none';
+        }
+
+        function showMessage(type, text) {
+            const messageDiv = document.getElementById('message');
+            messageDiv.className = `message message-${type}`;
+            messageDiv.textContent = text;
+            messageDiv.style.display = 'block';
+            
+            setTimeout(() => {
+                messageDiv.style.display = 'none';
+            }, 3000);
+        }
+
+        function logout() {
+            localStorage.removeItem(CONFIG.TOKEN_KEY);
+            localStorage.removeItem(CONFIG.USER_KEY);
+            window.location.href = '../index.html';
+        }
+
+        // Close modals when clicking outside
+        window.onclick = function(event) {
+            const modals = document.querySelectorAll('.modal');
+            modals.forEach(modal => {
+                if (event.target === modal) {
+                    modal.style.display = 'none';
+                }
+            });
+        };
+    </script>
+</body>
+</html>
+

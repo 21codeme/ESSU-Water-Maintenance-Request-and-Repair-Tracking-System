@@ -1,0 +1,98 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Clear Session - ESSU Water Maintenance</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            margin: 0;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        }
+        .container {
+            background: white;
+            padding: 2rem;
+            border-radius: 10px;
+            box-shadow: 0 10px 25px rgba(0,0,0,0.2);
+            text-align: center;
+            max-width: 400px;
+        }
+        h1 {
+            color: #333;
+            margin-bottom: 1rem;
+        }
+        button {
+            background: #667eea;
+            color: white;
+            border: none;
+            padding: 12px 24px;
+            border-radius: 5px;
+            font-size: 16px;
+            cursor: pointer;
+            margin: 10px;
+        }
+        button:hover {
+            background: #5568d3;
+        }
+        .message {
+            margin-top: 1rem;
+            padding: 10px;
+            border-radius: 5px;
+        }
+        .success {
+            background: #d4edda;
+            color: #155724;
+        }
+        .info {
+            background: #d1ecf1;
+            color: #0c5460;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🔐 Clear Session</h1>
+        <p>This will clear all stored login information and redirect you to the login page.</p>
+        <button onclick="clearSession()">Clear Session & Go to Login</button>
+        <div id="message"></div>
+    </div>
+
+    <script>
+        function clearSession() {
+            // Clear all localStorage items
+            localStorage.clear();
+            
+            // Show success message
+            const messageDiv = document.getElementById('message');
+            messageDiv.className = 'message success';
+            messageDiv.textContent = '✅ Session cleared! Redirecting to login...';
+            
+            // Redirect to login page
+            setTimeout(() => {
+                window.location.href = 'login/index.html';
+            }, 1000);
+        }
+
+        // Check current session status
+        window.onload = function() {
+            const token = localStorage.getItem('token');
+            const user = localStorage.getItem('user');
+            
+            const messageDiv = document.getElementById('message');
+            if (token || user) {
+                messageDiv.className = 'message info';
+                messageDiv.textContent = 'ℹ️ You have an active session. Click the button above to clear it.';
+            } else {
+                messageDiv.className = 'message info';
+                messageDiv.textContent = 'ℹ️ No active session found.';
+            }
+        };
+    </script>
+</body>
+</html>
+

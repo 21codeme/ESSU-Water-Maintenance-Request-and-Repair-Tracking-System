@@ -1,0 +1,416 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>My Reports - ESSU Water Maintenance</title>
+    <link rel="stylesheet" href="styles.css">
+    <link rel="icon" type="image/x-icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>💧</text></svg>">
+</head>
+<body>
+    <header class="site-header">
+        <div class="container">
+            <div class="header-content">
+                <div class="logo">
+                    <span class="logo-icon">💧</span>
+                    <h1>ESSU Water Maintenance Portal</h1>
+                </div>
+                <nav class="main-nav">
+                    <a href="../index.html" class="nav-link">Home</a>
+                    <a href="../report/index.html" class="nav-link">Report a Problem</a>
+                    <a href="index.html" class="nav-link active">My Reports</a>
+                    <a href="../login/index.html" class="nav-link" id="loginLink">Login</a>
+                    <a href="#" class="nav-link" id="logoutLink" style="display: none;" onclick="logout()">Logout</a>
+                </nav>
+                <div class="mobile-menu-toggle">
+                    <span></span>
+                    <span></span>
+                    <span></span>
+                </div>
+            </div>
+        </div>
+    </header>
+
+    <main class="container">
+        <div class="page-header">
+            <h2>My Reports</h2>
+            <p>Track the status of your submitted maintenance reports</p>
+        </div>
+
+        <div class="reports-container">
+            <div class="reports-controls">
+                <div class="filter-controls">
+                    <select id="statusFilter" onchange="filterReports()">
+                        <option value="">All Status</option>
+                        <option value="Pending">Pending</option>
+                        <option value="In Progress">In Progress</option>
+                        <option value="Resolved">Resolved</option>
+                        <option value="Cancelled">Cancelled</option>
+                    </select>
+                    <select id="issueTypeFilter" onchange="filterReports()">
+                        <option value="">All Issue Types</option>
+                        <option value="Leak">Leak</option>
+                        <option value="Supply">Supply</option>
+                        <option value="Drainage">Drainage</option>
+                        <option value="Other">Other</option>
+                    </select>
+                </div>
+                <div class="action-controls">
+                    <button class="btn btn-primary" onclick="refreshReports()">Refresh</button>
+                            <a href="../report/index.html" class="btn btn-secondary">New Report</a>
+                </div>
+            </div>
+
+            <div id="reportsList" class="reports-list">
+                <div class="loading">Loading your reports...</div>
+            </div>
+
+            <div class="reports-summary">
+                <div class="summary-card">
+                    <h3>Report Summary</h3>
+                    <div class="summary-stats">
+                        <div class="stat-item">
+                            <span class="stat-number" id="totalReports">0</span>
+                            <span class="stat-label">Total Reports</span>
+                        </div>
+                        <div class="stat-item">
+                            <span class="stat-number" id="pendingCount">0</span>
+                            <span class="stat-label">Pending</span>
+                        </div>
+                        <div class="stat-item">
+                            <span class="stat-number" id="resolvedCount">0</span>
+                            <span class="stat-label">Resolved</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Report Details Modal -->
+        <div id="reportModal" class="modal">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h3>Report Details</h3>
+                    <button class="modal-close" onclick="closeModal('reportModal')">&times;</button>
+                </div>
+                <div class="modal-body" id="reportModalBody">
+                    <!-- Report details will be loaded here -->
+                </div>
+                <div class="modal-footer">
+                    <button class="btn btn-secondary" onclick="closeModal('reportModal')">Close</button>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <footer class="site-footer">
+        <div class="container">
+            <div class="footer-content">
+                <div class="footer-section">
+                    <h4>ESSU Water Maintenance</h4>
+                    <p>Keeping our campus water systems safe and functional for everyone.</p>
+                </div>
+                <div class="footer-section">
+                    <h4>Quick Links</h4>
+                    <ul>
+                        <li><a href="../index.html">Home</a></li>
+                        <li><a href="../report/index.html">Report a Problem</a></li>
+                        <li><a href="../login/index.html">Staff Login</a></li>
+                    </ul>
+                </div>
+                <div class="footer-section">
+                    <h4>Need Help?</h4>
+                    <p>Contact our maintenance team:<br>
+                    Phone: (555) 123-4567<br>
+                    Email: maintenance@essu.edu</p>
+                </div>
+            </div>
+            <div class="footer-bottom">
+                <p>&copy; 2025 ESSU • Water Maintenance Portal</p>
+            </div>
+        </div>
+    </footer>
+
+    <div id="message" class="message" style="display: none;"></div>
+
+    <script src="app.js"></script>
+    <script>
+        let allReports = [];
+        let filteredReports = [];
+        let currentUser = null;
+
+        document.addEventListener('DOMContentLoaded', function() {
+            checkAuth();
+            loadUserReports();
+            setupMobileMenu();
+        });
+
+        function checkAuth() {
+            const token = localStorage.getItem(CONFIG.TOKEN_KEY);
+            const user = localStorage.getItem(CONFIG.USER_KEY);
+            
+            if (token && user) {
+                currentUser = JSON.parse(user);
+                document.getElementById('loginLink').style.display = 'none';
+                document.getElementById('logoutLink').style.display = 'inline';
+            }
+        }
+
+        async function loadUserReports() {
+            try {
+                document.getElementById('reportsList').innerHTML = '<div class="loading">Loading your reports...</div>';
+                
+                // Get all reports - use authenticated endpoint if logged in, otherwise public
+                let allReportsData = [];
+                
+                try {
+                    // Try authenticated endpoint first (works if user is logged in)
+                    allReportsData = await API.reports.getAll();
+                    console.log('✅ Loaded reports via authenticated endpoint:', allReportsData.length);
+                } catch (authError) {
+                    // If authentication fails, use public endpoint (no login required)
+                    console.log('⚠️ Auth failed, using public endpoint:', authError.message);
+                    try {
+                        allReportsData = await API.reports.getPublic();
+                        console.log('✅ Loaded reports via public endpoint:', allReportsData.length);
+                    } catch (publicError) {
+                        console.error('❌ Failed to load reports:', publicError);
+                        throw new Error('Unable to load reports. Please make sure the backend server is running on port 3000.');
+                    }
+                }
+                
+                // Filter reports by logged-in user's email
+                if (currentUser && currentUser.email) {
+                    // User is logged in - show only their reports
+                    const userEmail = currentUser.email.toLowerCase();
+                    allReports = (allReportsData || []).filter(report => {
+                        const reportEmail = report.email ? report.email.toLowerCase() : '';
+                        const matches = reportEmail === userEmail;
+                        if (!matches) {
+                            console.log(`⏭️ Skipping report ${report.id.substring(0, 8)} - email mismatch: "${reportEmail}" !== "${userEmail}"`);
+                        }
+                        return matches;
+                    });
+                    console.log(`✅ Filtered to ${allReports.length} reports for user: ${userEmail}`);
+                } else {
+                    // User is not logged in - show all reports (for public viewing)
+                    allReports = allReportsData || [];
+                    console.log('ℹ️ No user logged in, showing all reports:', allReports.length);
+                }
+                
+                filteredReports = [...allReports];
+                displayReports();
+                updateSummary();
+                
+                if (allReports.length === 0) {
+                    document.getElementById('reportsList').innerHTML = `
+                        <div class="no-reports">
+                            <h3>No Reports Found</h3>
+                            <p>${currentUser ? `You haven't submitted any reports yet. Your email: ${currentUser.email}` : 'No reports have been submitted yet.'}</p>
+                            <a href="../report/index.html" class="btn btn-primary">Submit Your First Report</a>
+                        </div>
+                    `;
+                }
+                
+            } catch (error) {
+                console.error('❌ Error loading reports:', error);
+                document.getElementById('reportsList').innerHTML = `
+                    <div class="error">
+                        <h3>Error Loading Reports</h3>
+                        <p>${error.message || 'Unable to load reports. Please make sure the backend server is running on port 3000.'}</p>
+                        <button class="btn btn-primary" onclick="loadUserReports()">Retry</button>
+                    </div>
+                `;
+            }
+        }
+
+        function displayReports() {
+            const reportsList = document.getElementById('reportsList');
+            
+            if (filteredReports.length === 0) {
+                reportsList.innerHTML = `
+                    <div class="no-reports">
+                        <h3>No Reports Found</h3>
+                        <p>No reports match your current filters.</p>
+                        <button class="btn btn-secondary" onclick="clearFilters()">Clear Filters</button>
+                    </div>
+                `;
+                return;
+            }
+
+            reportsList.innerHTML = filteredReports.map(report => `
+                <div class="report-card" onclick="viewReport('${report.id}')">
+                    <div class="report-header">
+                        <div class="report-id">${report.reporter_name || 'Unknown Reporter'}</div>
+                        <div class="report-status status-${report.status.toLowerCase().replace(' ', '-')}">${report.status}</div>
+                    </div>
+                    <div class="report-content">
+                        <h4 class="report-location">${report.location}</h4>
+                        <p class="report-description">${report.description ? report.description.substring(0, 100) : ''}${report.description && report.description.length > 100 ? '...' : ''}</p>
+                        <div class="report-meta">
+                            <span class="report-type">${report.issue_type}</span>
+                            <span class="report-date">${new Date(report.created_at).toLocaleDateString()}</span>
+                        </div>
+                    </div>
+                    <div class="report-actions">
+                        <button class="btn btn-sm btn-secondary" onclick="event.stopPropagation(); viewReport('${report.id}')">View Details</button>
+                    </div>
+                </div>
+            `).join('');
+        }
+
+        function filterReports() {
+            const statusFilter = document.getElementById('statusFilter').value;
+            const issueTypeFilter = document.getElementById('issueTypeFilter').value;
+            
+            filteredReports = allReports.filter(report => {
+                const statusMatch = !statusFilter || report.status === statusFilter;
+                const issueTypeMatch = !issueTypeFilter || report.issue_type === issueTypeFilter;
+                return statusMatch && issueTypeMatch;
+            });
+            
+            displayReports();
+            updateSummary();
+        }
+
+        function clearFilters() {
+            document.getElementById('statusFilter').value = '';
+            document.getElementById('issueTypeFilter').value = '';
+            filteredReports = [...allReports];
+            displayReports();
+            updateSummary();
+        }
+
+        function updateSummary() {
+            document.getElementById('totalReports').textContent = filteredReports.length;
+            document.getElementById('pendingCount').textContent = filteredReports.filter(r => r.status === 'Pending').length;
+            document.getElementById('resolvedCount').textContent = filteredReports.filter(r => r.status === 'Resolved').length;
+        }
+
+        function viewReport(reportId) {
+            console.log('🔍 viewReport called with ID:', reportId);
+            const report = allReports.find(r => r.id === reportId);
+            console.log('📋 Found report:', report);
+            if (!report) {
+                console.error('❌ Report not found with ID:', reportId);
+                showMessage('error', 'Report not found');
+                return;
+            }
+            
+            try {
+            document.getElementById('reportModalBody').innerHTML = `
+                <div class="report-details">
+                    <div class="detail-section">
+                        <h4>Report Information</h4>
+                        <div class="detail-row">
+                            <strong>Report ID:</strong> #${report.id}
+                        </div>
+                        <div class="detail-row">
+                            <strong>Status:</strong> 
+                            <span class="status status-${report.status.toLowerCase().replace(' ', '-')}">${report.status}</span>
+                        </div>
+                        <div class="detail-row">
+                            <strong>Priority:</strong> ${report.priority || 'Medium'}
+                        </div>
+                        <div class="detail-row">
+                            <strong>Created:</strong> ${new Date(report.created_at).toLocaleString()}
+                        </div>
+                        ${report.updated_at ? `<div class="detail-row"><strong>Last Updated:</strong> ${new Date(report.updated_at).toLocaleString()}</div>` : ''}
+                    </div>
+                    
+                    <div class="detail-section">
+                        <h4>Issue Details</h4>
+                        <div class="detail-row">
+                            <strong>Location:</strong> ${report.location}
+                        </div>
+                        <div class="detail-row">
+                            <strong>Issue Type:</strong> ${report.issue_type}
+                        </div>
+                        <div class="detail-row">
+                            <strong>Description:</strong> ${report.description}
+                        </div>
+                    </div>
+                    
+                    ${report.admin_note ? `
+                    <div class="detail-section">
+                        <h4>Maintenance Team Note</h4>
+                        <div class="admin-note">${report.admin_note}</div>
+                    </div>
+                    ` : ''}
+                    
+                    <div class="detail-section">
+                        <h4>Contact Information</h4>
+                        <div class="detail-row">
+                            <strong>Reporter:</strong> ${report.reporter_name}
+                        </div>
+                        <div class="detail-row">
+                            <strong>Email:</strong> ${report.email}
+                        </div>
+                    </div>
+                </div>
+            `;
+            
+                const modal = document.getElementById('reportModal');
+                if (modal) {
+                    modal.style.display = 'block';
+                    console.log('✅ Modal opened successfully');
+                } else {
+                    console.error('❌ Modal element not found');
+                    showMessage('error', 'Modal not found');
+                }
+            } catch (error) {
+                console.error('❌ Error displaying report:', error);
+                showMessage('error', 'Error displaying report details');
+            }
+        }
+
+        function refreshReports() {
+            loadUserReports();
+            showMessage('success', 'Reports refreshed');
+        }
+
+        function closeModal(modalId) {
+            document.getElementById(modalId).style.display = 'none';
+        }
+
+        function showMessage(type, text) {
+            const messageDiv = document.getElementById('message');
+            messageDiv.className = `message message-${type}`;
+            messageDiv.textContent = text;
+            messageDiv.style.display = 'block';
+            
+            setTimeout(() => {
+                messageDiv.style.display = 'none';
+            }, 3000);
+        }
+
+        function logout() {
+            localStorage.removeItem(CONFIG.TOKEN_KEY);
+            localStorage.removeItem(CONFIG.USER_KEY);
+            currentUser = null;
+            window.location.href = '../index.html';
+        }
+
+        function setupMobileMenu() {
+            const mobileMenuToggle = document.querySelector('.mobile-menu-toggle');
+            const mainNav = document.querySelector('.main-nav');
+
+            mobileMenuToggle.addEventListener('click', function() {
+                mainNav.classList.toggle('active');
+                mobileMenuToggle.classList.toggle('active');
+            });
+        }
+
+        // Close modals when clicking outside
+        window.onclick = function(event) {
+            const modals = document.querySelectorAll('.modal');
+            modals.forEach(modal => {
+                if (event.target === modal) {
+                    modal.style.display = 'none';
+                }
+            });
+        };
+    </script>
+</body>
+</html>
+
