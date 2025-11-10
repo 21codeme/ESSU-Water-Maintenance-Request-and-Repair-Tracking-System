@@ -389,7 +389,7 @@
                                     Original Report Image
                                 </h4>
                                 <div class="image-preview-card">
-                                    <img src="http://localhost:3000${report.image_path}" alt="Report Image" class="report-image-preview" onerror="this.style.display='none'">
+                                    <img src="${report.image_path ? (report.image_path.startsWith('http') ? report.image_path : `${window.location.origin}${report.image_path}`) : ''}" alt="Report Image" class="report-image-preview" onerror="this.style.display='none'">
                                 </div>
                             ` : ''}
                             ${report.completion_proof_path ? `
@@ -398,7 +398,7 @@
                                     Completion Proof
                                 </h4>
                                 <div class="image-preview-card">
-                                    <img src="http://localhost:3000${report.completion_proof_path}" alt="Completion Proof" class="report-image-preview" onerror="this.style.display='none'">
+                                    <img src="${report.completion_proof_path ? (report.completion_proof_path.startsWith('http') ? report.completion_proof_path : `${window.location.origin}${report.completion_proof_path}`) : ''}" alt="Completion Proof" class="report-image-preview" onerror="this.style.display='none'">
                                 </div>
                             ` : ''}
                         </div>

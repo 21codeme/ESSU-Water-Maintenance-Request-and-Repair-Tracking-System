@@ -851,7 +851,7 @@
                                     Original Report Image
                                 </h4>
                                 <div class="image-preview-card">
-                                    <img src="http://localhost:3000${report.image_path}" alt="Report Image" class="report-image-preview" onerror="this.style.display='none'">
+                                    <img src="${report.image_path ? (report.image_path.startsWith('http') ? report.image_path : `${window.location.origin}${report.image_path}`) : ''}" alt="Report Image" class="report-image-preview" onerror="this.style.display='none'">
                                 </div>
                             ` : ''}
                             ${report.completion_proof_path ? `
@@ -860,7 +860,7 @@
                                     Completion Proof
                                 </h4>
                                 <div class="image-preview-card">
-                                    <img src="http://localhost:3000${report.completion_proof_path}" alt="Completion Proof" class="report-image-preview" onerror="this.style.display='none'">
+                                    <img src="${report.completion_proof_path ? (report.completion_proof_path.startsWith('http') ? report.completion_proof_path : `${window.location.origin}${report.completion_proof_path}`) : ''}" alt="Completion Proof" class="report-image-preview" onerror="this.style.display='none'">
                                 </div>
                             ` : ''}
                         </div>
@@ -1048,7 +1048,7 @@
                     </td>
                     <td>
                         ${report.completion_proof_path ? `
-                            <img src="http://localhost:3000${report.completion_proof_path}" 
+                            <img src="${report.completion_proof_path ? (report.completion_proof_path.startsWith('http') ? report.completion_proof_path : `${window.location.origin}${report.completion_proof_path}`) : ''}" 
                                  alt="Completion Proof" 
                                  class="proof-thumbnail"
                                  onclick="viewProofImage('${report.completion_proof_path}')"
@@ -1105,7 +1105,7 @@
                         <button class="modal-close" onclick="this.closest('.modal').remove()">&times;</button>
                     </div>
                     <div class="modal-body" style="text-align: center; padding: 20px;">
-                        <img src="http://localhost:3000${imagePath}" alt="Completion Proof" style="max-width: 100%; max-height: 80vh; border-radius: 8px;">
+                        <img src="${imagePath ? (imagePath.startsWith('http') ? imagePath : `${window.location.origin}${imagePath}`) : ''}" alt="Completion Proof" style="max-width: 100%; max-height: 80vh; border-radius: 8px;">
                     </div>
                 </div>
             `;

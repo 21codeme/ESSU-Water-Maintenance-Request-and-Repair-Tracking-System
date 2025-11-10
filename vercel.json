@@ -1,0 +1,54 @@
+{
+  "version": 2,
+  "builds": [
+    {
+      "src": "api/index.js",
+      "use": "@vercel/node"
+    }
+  ],
+  "routes": [
+    {
+      "src": "/api/(.*)",
+      "dest": "api/index.js"
+    },
+    {
+      "src": "/admin/(.*)",
+      "dest": "frontend/admin/$1"
+    },
+    {
+      "src": "/dashboard/(.*)",
+      "dest": "frontend/dashboard/$1"
+    },
+    {
+      "src": "/login/(.*)",
+      "dest": "frontend/login/$1"
+    },
+    {
+      "src": "/myreports/(.*)",
+      "dest": "frontend/myreports/$1"
+    },
+    {
+      "src": "/report/(.*)",
+      "dest": "frontend/report/$1"
+    },
+    {
+      "src": "/images/(.*)",
+      "dest": "frontend/images/$1"
+    },
+    {
+      "src": "/(.*\\.(js|css|html|png|jpg|jpeg|gif|svg|ico|json))",
+      "dest": "frontend/$1"
+    },
+    {
+      "src": "/",
+      "dest": "frontend/index.html"
+    }
+  ],
+  "rewrites": [
+    {
+      "source": "/",
+      "destination": "/frontend/index.html"
+    }
+  ]
+}
+
