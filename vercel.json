@@ -8,36 +8,32 @@
   ],
   "rewrites": [
     {
-      "source": "/api/(.*)",
+      "source": "/api/:path*",
       "destination": "/api/index.js"
     },
     {
-      "source": "/admin/(.*)",
-      "destination": "/frontend/admin/$1"
+      "source": "/admin/:path*",
+      "destination": "/frontend/admin/:path*"
     },
     {
-      "source": "/dashboard/(.*)",
-      "destination": "/frontend/dashboard/$1"
+      "source": "/dashboard/:path*",
+      "destination": "/frontend/dashboard/:path*"
     },
     {
-      "source": "/login/(.*)",
-      "destination": "/frontend/login/$1"
+      "source": "/login/:path*",
+      "destination": "/frontend/login/:path*"
     },
     {
-      "source": "/myreports/(.*)",
-      "destination": "/frontend/myreports/$1"
+      "source": "/myreports/:path*",
+      "destination": "/frontend/myreports/:path*"
     },
     {
-      "source": "/report/(.*)",
-      "destination": "/frontend/report/$1"
+      "source": "/report/:path*",
+      "destination": "/frontend/report/:path*"
     },
     {
-      "source": "/images/(.*)",
-      "destination": "/frontend/images/$1"
-    },
-    {
-      "source": "/(.*\\.(js|css|html|png|jpg|jpeg|gif|svg|ico|json))",
-      "destination": "/frontend/$1"
+      "source": "/images/:path*",
+      "destination": "/frontend/images/:path*"
     },
     {
       "source": "/",
