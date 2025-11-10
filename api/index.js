@@ -14,14 +14,15 @@ app.use(express.urlencoded({ extended: true }));
 // Serve uploaded files (if needed)
 app.use('/uploads', express.static(path.join(__dirname, '../backend/uploads')));
 
-// Routes
-app.use('/api/auth', require('../backend/routes/auth'));
-app.use('/api/reports', require('../backend/routes/reports'));
-app.use('/api/users', require('../backend/routes/users'));
-app.use('/api', require('../backend/routes/email'));
+// Routes - Note: In Vercel, /api/* routes are handled by this function
+// So we don't need /api prefix in the route definitions
+app.use('/auth', require('../backend/routes/auth'));
+app.use('/reports', require('../backend/routes/reports'));
+app.use('/users', require('../backend/routes/users'));
+app.use('/', require('../backend/routes/email'));
 
 // Health check endpoint
-app.get('/api/health', (req, res) => {
+app.get('/health', (req, res) => {
     res.json({ 
         status: 'ok', 
         message: 'ESSU Water Maintenance API is running',
@@ -29,7 +30,7 @@ app.get('/api/health', (req, res) => {
     });
 });
 
-// Root endpoint
+// Root endpoint for API
 app.get('/', (req, res) => {
     res.json({ 
         message: 'ESSU Water Maintenance API',

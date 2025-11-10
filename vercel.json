@@ -6,11 +6,13 @@
       "use": "@vercel/node"
     }
   ],
-  "rewrites": [
+  "routes": [
     {
-      "source": "/api/:path*",
-      "destination": "/api/index.js"
-    },
+      "src": "/api/(.*)",
+      "dest": "/api/index.js"
+    }
+  ],
+  "rewrites": [
     {
       "source": "/admin/:path*",
       "destination": "/frontend/admin/:path*"
@@ -34,6 +36,18 @@
     {
       "source": "/images/:path*",
       "destination": "/frontend/images/:path*"
+    },
+    {
+      "source": "/styles.css",
+      "destination": "/frontend/styles.css"
+    },
+    {
+      "source": "/app.js",
+      "destination": "/frontend/app.js"
+    },
+    {
+      "source": "/supabase-helpers.js",
+      "destination": "/frontend/supabase-helpers.js"
     },
     {
       "source": "/",
