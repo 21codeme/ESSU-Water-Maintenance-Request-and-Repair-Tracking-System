@@ -59,3 +59,4 @@ You MUST run the migration SQL in Supabase to add the required columns.
 4. Make sure you restarted the backend server after migration
 
 
+

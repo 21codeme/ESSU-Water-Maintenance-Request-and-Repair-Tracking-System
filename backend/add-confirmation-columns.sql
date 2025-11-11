@@ -17,3 +17,4 @@ WHERE table_name = 'reports'
 AND column_name IN ('confirmed_by_technician', 'confirmed_at');
 
 
+

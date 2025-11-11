@@ -11,8 +11,8 @@ app.use(cors());
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
-// Serve uploaded files (if needed)
-app.use('/uploads', express.static(path.join(__dirname, '../backend/uploads')));
+// Note: File uploads are now handled by Supabase Storage
+// No need to serve static files from local filesystem in Vercel
 
 // Routes - Note: In Vercel, /api/* routes are handled by this function
 // So we don't need /api prefix in the route definitions

@@ -304,6 +304,39 @@
         let issueTypeChart = null;
         let priorityChart = null;
 
+        // Helper function to get backend base URL for serving static files
+        function getBackendBaseUrl() {
+            // Get API base URL from CONFIG (defined in app.js)
+            // Check if CONFIG is available (from app.js)
+            let apiBaseUrl = '/api';
+            if (typeof CONFIG !== 'undefined' && CONFIG.API_BASE_URL) {
+                apiBaseUrl = CONFIG.API_BASE_URL;
+            } else if (window.ESSU && window.ESSU.CONFIG && window.ESSU.CONFIG.API_BASE_URL) {
+                apiBaseUrl = window.ESSU.CONFIG.API_BASE_URL;
+            }
+            
+            // Remove /api suffix to get base URL
+            if (apiBaseUrl.endsWith('/api')) {
+                return apiBaseUrl.replace('/api', '');
+            }
+            
+            // If it's already a base URL, return as is
+            // Otherwise, try to construct from current location
+            if (apiBaseUrl.startsWith('http')) {
+                return apiBaseUrl.replace('/api', '');
+            }
+            
+            // Fallback: use current origin (for same-origin deployments)
+            return window.location.origin;
+        }
+
+        // Helper function to construct full image URL
+        function getImageUrl(imagePath) {
+            if (!imagePath) return '';
+            if (imagePath.startsWith('http')) return imagePath;
+            return `${getBackendBaseUrl()}${imagePath}`;
+        }
+
         // Immediate authentication check (before DOM loads)
         (function() {
             const token = localStorage.getItem(CONFIG.TOKEN_KEY);
@@ -851,7 +884,7 @@
                                     Original Report Image
                                 </h4>
                                 <div class="image-preview-card">
-                                    <img src="${report.image_path ? (report.image_path.startsWith('http') ? report.image_path : `${window.location.origin}${report.image_path}`) : ''}" alt="Report Image" class="report-image-preview" onerror="this.style.display='none'">
+                                    <img src="${getImageUrl(report.image_path)}" alt="Report Image" class="report-image-preview" onerror="this.style.display='none'">
                                 </div>
                             ` : ''}
                             ${report.completion_proof_path ? `
@@ -860,7 +893,7 @@
                                     Completion Proof
                                 </h4>
                                 <div class="image-preview-card">
-                                    <img src="${report.completion_proof_path ? (report.completion_proof_path.startsWith('http') ? report.completion_proof_path : `${window.location.origin}${report.completion_proof_path}`) : ''}" alt="Completion Proof" class="report-image-preview" onerror="this.style.display='none'">
+                                    <img src="${getImageUrl(report.completion_proof_path)}" alt="Completion Proof" class="report-image-preview" onerror="this.style.display='none'">
                                 </div>
                             ` : ''}
                         </div>
@@ -1048,7 +1081,7 @@
                     </td>
                     <td>
                         ${report.completion_proof_path ? `
-                            <img src="${report.completion_proof_path ? (report.completion_proof_path.startsWith('http') ? report.completion_proof_path : `${window.location.origin}${report.completion_proof_path}`) : ''}" 
+                            <img src="${getImageUrl(report.completion_proof_path)}" 
                                  alt="Completion Proof" 
                                  class="proof-thumbnail"
                                  onclick="viewProofImage('${report.completion_proof_path}')"
@@ -1105,7 +1138,7 @@
                         <button class="modal-close" onclick="this.closest('.modal').remove()">&times;</button>
                     </div>
                     <div class="modal-body" style="text-align: center; padding: 20px;">
-                        <img src="${imagePath ? (imagePath.startsWith('http') ? imagePath : `${window.location.origin}${imagePath}`) : ''}" alt="Completion Proof" style="max-width: 100%; max-height: 80vh; border-radius: 8px;">
+                        <img src="${getImageUrl(imagePath)}" alt="Completion Proof" style="max-width: 100%; max-height: 80vh; border-radius: 8px;">
                     </div>
                 </div>
             `;

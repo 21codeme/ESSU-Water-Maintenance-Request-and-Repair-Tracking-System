@@ -6,22 +6,11 @@ const path = require('path');
 const fs = require('fs');
 const { authenticateToken, requireRole } = require('../middleware/auth');
 const supabase = require('../config/supabase');
+const { uploadToSupabaseStorage, deleteFromSupabaseStorage, getPublicUrl } = require('../utils/storage');
 
-// Configure multer for file uploads
-const storage = multer.diskStorage({
-    destination: (req, file, cb) => {
-        const uploadDir = './uploads';
-        if (!fs.existsSync(uploadDir)) {
-            fs.mkdirSync(uploadDir, { recursive: true });
-        }
-        cb(null, uploadDir);
-    },
-    filename: (req, file, cb) => {
-        const uniqueSuffix = Date.now() + '-' + Math.round(Math.random() * 1E9);
-        const prefix = file.fieldname === 'completion_proof' ? 'proof-' : 'report-';
-        cb(null, prefix + uniqueSuffix + path.extname(file.originalname));
-    }
-});
+// Configure multer for file uploads - use memory storage for Vercel compatibility
+// Files will be uploaded to Supabase Storage instead of local filesystem
+const storage = multer.memoryStorage();
 
 const upload = multer({
     storage: storage,
@@ -154,7 +143,28 @@ router.post('/', upload.single('photo'), async (req, res) => {
             return res.status(400).json({ error: 'All required fields must be provided' });
         }
 
-        const imagePath = req.file ? `/uploads/${req.file.filename}` : null;
+        let imagePath = null;
+        
+        // Upload file to Supabase Storage if provided
+        if (req.file) {
+            try {
+                const uniqueSuffix = Date.now() + '-' + Math.round(Math.random() * 1E9);
+                const fileName = `report-${uniqueSuffix}${path.extname(req.file.originalname)}`;
+                
+                const uploadResult = await uploadToSupabaseStorage(
+                    req.file.buffer,
+                    fileName,
+                    'reports',
+                    req.file.mimetype
+                );
+                
+                imagePath = uploadResult.url; // Store full URL instead of local path
+            } catch (uploadError) {
+                console.error('Error uploading image to Supabase Storage:', uploadError);
+                // Continue without image if upload fails
+                // You might want to return an error here instead
+            }
+        }
 
         const { data, error } = await supabase
             .from('reports')
@@ -210,7 +220,22 @@ router.put('/:id', authenticateToken, upload.single('completion_proof'), async (
         
         // Handle completion proof image upload
         if (req.file) {
-            updates.completion_proof_path = `/uploads/${req.file.filename}`;
+            try {
+                const uniqueSuffix = Date.now() + '-' + Math.round(Math.random() * 1E9);
+                const fileName = `proof-${uniqueSuffix}${path.extname(req.file.originalname)}`;
+                
+                const uploadResult = await uploadToSupabaseStorage(
+                    req.file.buffer,
+                    fileName,
+                    'proofs',
+                    req.file.mimetype
+                );
+                
+                updates.completion_proof_path = uploadResult.url; // Store full URL
+            } catch (uploadError) {
+                console.error('Error uploading proof image to Supabase Storage:', uploadError);
+                return res.status(500).json({ error: 'Failed to upload proof image' });
+            }
         }
 
         // Debug: Log what we're trying to update
@@ -288,11 +313,24 @@ router.delete('/:id', authenticateToken, requireRole('admin'), async (req, res) 
             return res.status(500).json({ error: 'Internal server error' });
         }
 
-        // Delete image file if exists
+        // Delete image file from Supabase Storage if exists
         if (report?.image_path) {
-            const imagePath = path.join(__dirname, '..', report.image_path);
-            if (fs.existsSync(imagePath)) {
-                fs.unlinkSync(imagePath);
+            // Extract file path from URL if it's a Supabase Storage URL
+            // Format: https://[project].supabase.co/storage/v1/object/public/uploads/reports/filename.jpg
+            // We need: reports/filename.jpg
+            try {
+                const urlParts = report.image_path.split('/uploads/');
+                if (urlParts.length > 1) {
+                    const filePath = urlParts[1];
+                    await deleteFromSupabaseStorage(filePath);
+                } else {
+                    // Old format: /uploads/filename.jpg -> try to extract filename
+                    const fileName = path.basename(report.image_path);
+                    await deleteFromSupabaseStorage(`reports/${fileName}`);
+                }
+            } catch (deleteError) {
+                console.error('Error deleting image from storage:', deleteError);
+                // Continue with report deletion even if image deletion fails
             }
         }
 
